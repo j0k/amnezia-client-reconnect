@@ -7,7 +7,7 @@
 
 
 #ifdef Q_OS_MAC
-#  include "platforms/macos/macosutils.h"
+#  include "platforms/macos/macosstatusicon.h"
 #endif
 
 #include <QApplication>
@@ -18,14 +18,11 @@
 #include "version.h"
 
 SystemTrayNotificationHandler::SystemTrayNotificationHandler(QObject* parent) :
-    NotificationHandler(parent),
-    m_systemTrayIcon(parent)
-
+    NotificationHandler(parent)
+#ifndef Q_OS_MAC
+    , m_systemTrayIcon(parent)
+#endif
 {
-    m_systemTrayIcon.setToolTip(APPLICATION_NAME);
-    m_systemTrayIcon.show();
-    connect(&m_systemTrayIcon, &QSystemTrayIcon::activated, this, &SystemTrayNotificationHandler::onTrayActivated);
-
     m_trayActionShow =  m_menu.addAction(QIcon(":/images/tray/application.png"), tr("Show") + " " + APPLICATION_NAME, this, [this](){
         emit raiseRequested();
     });
@@ -45,11 +42,26 @@ SystemTrayNotificationHandler::SystemTrayNotificationHandler(QObject* parent) :
                                        this,
                                        [&](){ qApp->quit(); });
 
+#ifdef Q_OS_MAC
+    // QSystemTrayIcon::setContextMenu crashes on macOS 14+: its menu-tracking
+    // observer reads -[NSEvent clickCount] off a non-mouse event. Own the
+    // NSStatusItem and attach the native NSMenu instead.
+    m_statusIcon = new MacOSStatusIcon(this);
+    m_statusIcon->setMenu(&m_menu);
+#else
+    m_systemTrayIcon.show();
+    connect(&m_systemTrayIcon, &QSystemTrayIcon::activated, this,
+            &SystemTrayNotificationHandler::onTrayActivated);
     m_systemTrayIcon.setContextMenu(&m_menu);
+#endif
     setTrayState(Vpn::ConnectionState::Disconnected);
 }
 
 SystemTrayNotificationHandler::~SystemTrayNotificationHandler() {
+#ifdef Q_OS_MAC
+    delete m_statusIcon;  // before m_menu: the status item references its NSMenu
+    m_statusIcon = nullptr;
+#endif
 }
 
 void SystemTrayNotificationHandler::setConnectionState(Vpn::ConnectionState state)
@@ -75,10 +87,7 @@ void SystemTrayNotificationHandler::updateWebsiteUrl(const QString &newWebsiteUr
 void SystemTrayNotificationHandler::setTrayIcon(const QString &iconPath)
 {
 #ifdef Q_OS_MAC
-    // On macOS the monochrome glyph is a template image that the system tints.
-    QIcon trayIcon(QPixmap(iconPath).scaled(128, 128));
-    trayIcon.setIsMask(true);
-    m_systemTrayIcon.setIcon(trayIcon);
+    m_statusIcon->setIcon(iconPath);
 #else
     // The monochrome tray glyphs (:/images/tray/*.png) render as an invisible white
     // icon on a light taskbar. Use the full-colour app logo instead — it stays visible
@@ -95,11 +104,9 @@ void SystemTrayNotificationHandler::setTrayIcon(const QString &iconPath)
 
 void SystemTrayNotificationHandler::onTrayActivated(QSystemTrayIcon::ActivationReason reason)
 {
-#ifndef Q_OS_MAC
     if(reason == QSystemTrayIcon::DoubleClick || reason == QSystemTrayIcon::Trigger) {
         emit raiseRequested();
     }
-#endif
 }
 
 void SystemTrayNotificationHandler::setTrayState(Vpn::ConnectionState state)
@@ -161,7 +168,12 @@ void SystemTrayNotificationHandler::setTrayState(Vpn::ConnectionState state)
     case Vpn::ConnectionState::Error:         stateText = tr("Error"); break;
     default:                                  stateText = tr("Disconnected"); break;
     }
+#ifndef Q_OS_MAC
+    // macOS uses m_statusIcon (per-state icon) and has no m_systemTrayIcon.
     m_systemTrayIcon.setToolTip(QString("%1 — %2").arg(APPLICATION_NAME, stateText));
+#else
+    Q_UNUSED(stateText)
+#endif
 
     //#ifdef Q_OS_MAC
     //    // Get theme from current user (note, this app can be launched as root application and in this case this theme can be different from theme of real current user )
@@ -179,8 +191,13 @@ void SystemTrayNotificationHandler::notify(NotificationHandler::Message type,
                                            int timerMsec) {
   Q_UNUSED(type);
 
+#ifdef Q_OS_MAC
+  Q_UNUSED(timerMsec);
+  m_statusIcon->showMessage(title, message);
+#else
   QIcon icon(ConnectedTrayIconName);
   m_systemTrayIcon.showMessage(title, message, icon, timerMsec);
+#endif
 }
 
 void SystemTrayNotificationHandler::showHideWindow() {
