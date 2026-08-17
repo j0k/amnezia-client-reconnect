@@ -32,6 +32,7 @@ ConnectionController::ConnectionController(SecureServersRepository* serversRepos
     connect(this, &ConnectionController::closeConnectionRequested, m_vpnConnection, &VpnConnection::disconnectFromVpn, Qt::QueuedConnection);
     connect(this, &ConnectionController::setConnectionStateRequested, m_vpnConnection, &VpnConnection::setConnectionState, Qt::QueuedConnection);
     connect(this, &ConnectionController::killSwitchModeChangedRequested, m_vpnConnection, &VpnConnection::onKillSwitchModeChanged, Qt::QueuedConnection);
+    connect(this, &ConnectionController::reapplySplitTunnelingRequested, m_vpnConnection, &VpnConnection::reapplySplitTunneling, Qt::QueuedConnection);
 #ifdef Q_OS_ANDROID
     connect(this, &ConnectionController::restoreConnectionRequested, m_vpnConnection, &VpnConnection::restoreConnection, Qt::QueuedConnection);
 #endif
@@ -242,6 +243,13 @@ void ConnectionController::onKillSwitchModeChanged(bool enabled)
 {
     if (m_vpnConnection) {
         emit killSwitchModeChangedRequested(enabled);
+    }
+}
+
+void ConnectionController::reapplySplitTunneling()
+{
+    if (m_vpnConnection && isConnected()) {
+        emit reapplySplitTunnelingRequested();
     }
 }
 

@@ -318,6 +318,149 @@ void SecureAppSettingsRepository::setStrictKillSwitchEnabled(bool enabled)
     setValue("Conf/strictKillSwitchEnabled", enabled);
 }
 
+bool SecureAppSettingsRepository::isReconnectEnabled() const
+{
+    return value("Conf/reconnectEnabled", false).toBool();
+}
+
+void SecureAppSettingsRepository::setReconnectEnabled(bool enabled)
+{
+    setValue("Conf/reconnectEnabled", enabled);
+}
+
+int SecureAppSettingsRepository::reconnectIntervalMinutes() const
+{
+    int minutes = value("Conf/reconnectIntervalMinutes", 10).toInt();
+    return minutes < 1 ? 1 : minutes;
+}
+
+void SecureAppSettingsRepository::setReconnectIntervalMinutes(int minutes)
+{
+    setValue("Conf/reconnectIntervalMinutes", minutes < 1 ? 1 : minutes);
+}
+
+QStringList SecureAppSettingsRepository::reconnectHosts() const
+{
+    // Stored as a newline-joined string so the secure settings backend only has to handle a plain QString.
+    const QString stored = value("Conf/reconnectHosts", QStringLiteral("1.1.1.1\n8.8.8.8")).toString();
+    QStringList hosts;
+    const auto parts = stored.split('\n', Qt::SkipEmptyParts);
+    for (const QString &part : parts) {
+        const QString trimmed = part.trimmed();
+        if (!trimmed.isEmpty()) {
+            hosts.append(trimmed);
+        }
+    }
+    return hosts;
+}
+
+void SecureAppSettingsRepository::setReconnectHosts(const QStringList &hosts)
+{
+    QStringList cleaned;
+    for (const QString &host : hosts) {
+        const QString trimmed = host.trimmed();
+        if (!trimmed.isEmpty()) {
+            cleaned.append(trimmed);
+        }
+    }
+    setValue("Conf/reconnectHosts", cleaned.join('\n'));
+}
+
+int SecureAppSettingsRepository::reconnectFailMode() const
+{
+    // 0 = reconnect only if all hosts are unreachable, 1 = reconnect if any host is unreachable
+    return value("Conf/reconnectFailMode", 0).toInt();
+}
+
+void SecureAppSettingsRepository::setReconnectFailMode(int mode)
+{
+    setValue("Conf/reconnectFailMode", mode);
+}
+
+bool SecureAppSettingsRepository::isReconnectRandomOrder() const
+{
+    return value("Conf/reconnectRandomOrder", false).toBool();
+}
+
+void SecureAppSettingsRepository::setReconnectRandomOrder(bool enabled)
+{
+    setValue("Conf/reconnectRandomOrder", enabled);
+}
+
+int SecureAppSettingsRepository::reconnectLogCategories() const
+{
+    // Bitmask of event categories written to the reconnect event log. Default: all enabled (15).
+    return value("Conf/reconnectLogCategories", 15).toInt();
+}
+
+void SecureAppSettingsRepository::setReconnectLogCategories(int categories)
+{
+    setValue("Conf/reconnectLogCategories", categories);
+}
+
+int SecureAppSettingsRepository::reconnectStuckTimeoutSeconds() const
+{
+    int seconds = value("Conf/reconnectStuckTimeoutSeconds", 120).toInt();
+    return seconds < 10 ? 10 : seconds;
+}
+
+void SecureAppSettingsRepository::setReconnectStuckTimeoutSeconds(int seconds)
+{
+    setValue("Conf/reconnectStuckTimeoutSeconds", seconds < 10 ? 10 : seconds);
+}
+
+int SecureAppSettingsRepository::reconnectPauseSeconds() const
+{
+    int seconds = value("Conf/reconnectPauseSeconds", 120).toInt();
+    return seconds < 5 ? 5 : seconds;
+}
+
+void SecureAppSettingsRepository::setReconnectPauseSeconds(int seconds)
+{
+    setValue("Conf/reconnectPauseSeconds", seconds < 5 ? 5 : seconds);
+}
+
+bool SecureAppSettingsRepository::isDirectProxyEnabled() const
+{
+    return value("Conf/directProxyEnabled", false).toBool();
+}
+
+void SecureAppSettingsRepository::setDirectProxyEnabled(bool enabled)
+{
+    setValue("Conf/directProxyEnabled", enabled);
+}
+
+int SecureAppSettingsRepository::directProxyType() const
+{
+    return value("Conf/directProxyType", 0).toInt(); // default SOCKS5
+}
+
+void SecureAppSettingsRepository::setDirectProxyType(int type)
+{
+    setValue("Conf/directProxyType", type);
+}
+
+int SecureAppSettingsRepository::directProxyPort() const
+{
+    int port = value("Conf/directProxyPort", 8899).toInt();
+    return (port < 1 || port > 65535) ? 8899 : port;
+}
+
+void SecureAppSettingsRepository::setDirectProxyPort(int port)
+{
+    setValue("Conf/directProxyPort", (port < 1 || port > 65535) ? 8899 : port);
+}
+
+bool SecureAppSettingsRepository::isDirectProxyLogEnabled() const
+{
+    return value("Conf/directProxyLogEnabled", false).toBool();
+}
+
+void SecureAppSettingsRepository::setDirectProxyLogEnabled(bool enabled)
+{
+    setValue("Conf/directProxyLogEnabled", enabled);
+}
+
 bool SecureAppSettingsRepository::isAutoConnect() const
 {
     return value("Conf/autoConnect", false).toBool();

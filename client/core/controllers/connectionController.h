@@ -46,6 +46,9 @@ public:
 
     void onKillSwitchModeChanged(bool enabled);
 
+    // Re-applies split-tunneling (app/site lists) to the running tunnel without reconnecting.
+    void reapplySplitTunneling();
+
     ErrorCode lastConnectionError() const;
 
     bool isConnected() const;
@@ -69,6 +72,7 @@ signals:
     void closeConnectionRequested();
     void setConnectionStateRequested(Vpn::ConnectionState state);
     void killSwitchModeChangedRequested(bool enabled);
+    void reapplySplitTunnelingRequested();
 
 #ifdef Q_OS_ANDROID
     void restoreConnectionRequested();

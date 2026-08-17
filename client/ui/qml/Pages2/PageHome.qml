@@ -172,6 +172,117 @@ PageType {
                 }
             }
 
+            BasicButtonType {
+                id: reconnectStatusButton
+                objectName: "reconnectStatusButton"
+
+                Layout.alignment: Qt.AlignHCenter | Qt.AlignBottom
+                leftPadding: 16
+                rightPadding: 16
+
+                implicitHeight: 36
+
+                visible: ReconnectController.enabled
+
+                defaultColor: AmneziaStyle.color.transparent
+                hoveredColor: AmneziaStyle.color.translucentWhite
+                pressedColor: AmneziaStyle.color.sheerWhite
+                disabledColor: AmneziaStyle.color.mutedGray
+                textColor: AmneziaStyle.color.mutedGray
+                borderWidth: 0
+
+                buttonTextLabel.lineHeight: 20
+                buttonTextLabel.font.pixelSize: 14
+                buttonTextLabel.font.weight: 500
+
+                text: qsTr("Auto-reconnect enabled")
+
+                leftImageSource: "qrc:/images/controls/refresh-cw.svg"
+                leftImageColor: ""
+                rightImageSource: "qrc:/images/controls/chevron-right.svg"
+
+                Keys.onEnterPressed: this.clicked()
+                Keys.onReturnPressed: this.clicked()
+
+                onClicked: {
+                    PageController.goToPage(PageEnum.PageSettingsReconnect)
+                }
+            }
+
+            BasicButtonType {
+                id: directProxyStatusButton
+                objectName: "directProxyStatusButton"
+
+                Layout.alignment: Qt.AlignHCenter | Qt.AlignBottom
+                leftPadding: 16
+                rightPadding: 16
+
+                implicitHeight: 36
+
+                visible: DirectProxyController.enabled
+
+                defaultColor: AmneziaStyle.color.transparent
+                hoveredColor: AmneziaStyle.color.translucentWhite
+                pressedColor: AmneziaStyle.color.sheerWhite
+                disabledColor: AmneziaStyle.color.mutedGray
+                textColor: AmneziaStyle.color.mutedGray
+                borderWidth: 0
+
+                buttonTextLabel.lineHeight: 20
+                buttonTextLabel.font.pixelSize: 14
+                buttonTextLabel.font.weight: 500
+
+                text: qsTr("Direct proxy enabled") + "  (" + DirectProxyController.address + ")"
+
+                leftImageSource: "qrc:/images/controls/globe-2.svg"
+                leftImageColor: ""
+                rightImageSource: "qrc:/images/controls/chevron-right.svg"
+
+                Keys.onEnterPressed: this.clicked()
+                Keys.onReturnPressed: this.clicked()
+
+                onClicked: {
+                    PageController.goToPage(PageEnum.PageSettingsDirectProxy)
+                }
+            }
+
+            BasicButtonType {
+                id: logsStatusButton
+                objectName: "logsStatusButton"
+
+                visible: GC.isDesktop()
+
+                Layout.alignment: Qt.AlignHCenter | Qt.AlignBottom
+                leftPadding: 16
+                rightPadding: 16
+
+                implicitHeight: 36
+
+                defaultColor: AmneziaStyle.color.transparent
+                hoveredColor: AmneziaStyle.color.translucentWhite
+                pressedColor: AmneziaStyle.color.sheerWhite
+                disabledColor: AmneziaStyle.color.mutedGray
+                textColor: AmneziaStyle.color.mutedGray
+                borderWidth: 0
+
+                buttonTextLabel.lineHeight: 20
+                buttonTextLabel.font.pixelSize: 14
+                buttonTextLabel.font.weight: 500
+
+                text: qsTr("Logs")
+
+                leftImageSource: "qrc:/images/controls/file-check-2.svg"
+                leftImageColor: ""
+                rightImageSource: "qrc:/images/controls/chevron-right.svg"
+
+                Keys.onEnterPressed: this.clicked()
+                Keys.onReturnPressed: this.clicked()
+
+                onClicked: {
+                    PageController.goToPage(PageEnum.PageSettingsLogging)
+                }
+            }
+
             AdLabel {
                 id: adLabel
 

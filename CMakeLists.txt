@@ -4,7 +4,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(PROJECT AmneziaVPN)
-set(AMNEZIAVPN_VERSION 4.9.0.3)
+set(AMNEZIAVPN_VERSION 4.10.0.0)
 
 set(QT_CREATOR_SKIP_PACKAGE_MANAGER_SETUP ON CACHE BOOL "" FORCE)
 set(CMAKE_PROJECT_TOP_LEVEL_INCLUDES
@@ -71,6 +71,10 @@ add_subdirectory(client)
 
 if(NOT IOS AND NOT ANDROID AND NOT MACOS_NE)
     add_subdirectory(service)
+endif()
+
+if(WIN32)
+    add_subdirectory(directproxy)
 endif()
 
 if ((LINUX AND NOT ANDROID) OR (APPLE AND NOT IOS AND NOT MACOS_NE) OR (WIN32))

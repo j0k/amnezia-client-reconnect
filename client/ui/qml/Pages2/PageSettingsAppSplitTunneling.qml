@@ -20,16 +20,8 @@ import "../Components"
 PageType {
     id: root
 
-    property bool pageEnabled
-
-    Component.onCompleted: {
-        if (ConnectionController.isConnected) {
-            PageController.showNotificationMessage(qsTr("Cannot change split tunneling settings during active connection"))
-            root.pageEnabled = false
-        } else {
-            root.pageEnabled = true
-        }
-    }
+    // Editing is allowed while connected: changes are applied to the running tunnel in real time.
+    property bool pageEnabled: true
 
     QtObject {
         id: routeMode

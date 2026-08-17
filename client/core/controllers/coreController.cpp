@@ -171,6 +171,12 @@ void CoreController::initControllers()
     m_connectionUiController = new ConnectionUiController(m_connectionController, m_serversController, this);
     setQmlContextProperty("ConnectionController", m_connectionUiController);
 
+    m_reconnectController = new ReconnectController(m_connectionController, m_serversController, m_appSettingsRepository, this);
+    setQmlContextProperty("ReconnectController", m_reconnectController);
+
+    m_directProxyController = new DirectProxyController(m_appSettingsRepository, m_connectionController, this);
+    setQmlContextProperty("DirectProxyController", m_directProxyController);
+
     if (m_engine) {
         m_focusController = new FocusController(m_engine, this);
         setQmlContextProperty("FocusController", m_focusController);
@@ -209,7 +215,7 @@ void CoreController::initControllers()
     m_allowedDnsUiController = new AllowedDnsUiController(m_allowedDnsController, m_allowedDnsModel, this);
     setQmlContextProperty("AllowedDnsController", m_allowedDnsUiController);
 
-    m_appSplitTunnelingUiController = new AppSplitTunnelingUiController(m_appSplitTunnelingController, m_appSplitTunnelingModel, this);
+    m_appSplitTunnelingUiController = new AppSplitTunnelingUiController(m_appSplitTunnelingController, m_appSplitTunnelingModel, m_connectionController, this);
     setQmlContextProperty("AppSplitTunnelingController", m_appSplitTunnelingUiController);
 
     m_systemController = new SystemController(this);

@@ -22,6 +22,7 @@ SystemTrayNotificationHandler::SystemTrayNotificationHandler(QObject* parent) :
     m_systemTrayIcon(parent)
 
 {
+    m_systemTrayIcon.setToolTip(APPLICATION_NAME);
     m_systemTrayIcon.show();
     connect(&m_systemTrayIcon, &QSystemTrayIcon::activated, this, &SystemTrayNotificationHandler::onTrayActivated);
 
@@ -73,11 +74,23 @@ void SystemTrayNotificationHandler::updateWebsiteUrl(const QString &newWebsiteUr
 
 void SystemTrayNotificationHandler::setTrayIcon(const QString &iconPath)
 {
-    QIcon trayIconMask(QPixmap(iconPath).scaled(128,128));
-#ifndef Q_OS_MAC
-    trayIconMask.setIsMask(true);
+#ifdef Q_OS_MAC
+    // On macOS the monochrome glyph is a template image that the system tints.
+    QIcon trayIcon(QPixmap(iconPath).scaled(128, 128));
+    trayIcon.setIsMask(true);
+    m_systemTrayIcon.setIcon(trayIcon);
+#else
+    // The monochrome tray glyphs (:/images/tray/*.png) render as an invisible white
+    // icon on a light taskbar. Use the full-colour app logo instead — it stays visible
+    // on any theme. The connection state is conveyed via the tooltip (see setTrayState).
+    Q_UNUSED(iconPath)
+    QIcon trayIcon(":/images/AmneziaVPN.png");
+    m_systemTrayIcon.setIcon(trayIcon);
+    // Make sure the icon is (re)shown — e.g. after an Explorer/taskbar restart.
+    if (!m_systemTrayIcon.isVisible()) {
+        m_systemTrayIcon.show();
+    }
 #endif
-    m_systemTrayIcon.setIcon(trayIconMask);
 }
 
 void SystemTrayNotificationHandler::onTrayActivated(QSystemTrayIcon::ActivationReason reason)
@@ -135,6 +148,20 @@ void SystemTrayNotificationHandler::setTrayState(Vpn::ConnectionState state)
         m_trayActionDisconnect->setEnabled(true);
         setTrayIcon(QString(resourcesPath).arg(DisconnectedTrayIconName));
     }
+
+    // Convey the connection state via the tooltip (the Windows/Linux tray icon itself
+    // is the full-colour logo and does not change per state).
+    QString stateText;
+    switch (state) {
+    case Vpn::ConnectionState::Connected:     stateText = tr("Connected"); break;
+    case Vpn::ConnectionState::Connecting:    stateText = tr("Connecting..."); break;
+    case Vpn::ConnectionState::Reconnecting:  stateText = tr("Reconnecting..."); break;
+    case Vpn::ConnectionState::Disconnecting: stateText = tr("Disconnecting..."); break;
+    case Vpn::ConnectionState::Preparing:     stateText = tr("Preparing..."); break;
+    case Vpn::ConnectionState::Error:         stateText = tr("Error"); break;
+    default:                                  stateText = tr("Disconnected"); break;
+    }
+    m_systemTrayIcon.setToolTip(QString("%1 — %2").arg(APPLICATION_NAME, stateText));
 
     //#ifdef Q_OS_MAC
     //    // Get theme from current user (note, this app can be launched as root application and in this case this theme can be different from theme of real current user )

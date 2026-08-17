@@ -22,17 +22,23 @@ PageType {
 
     property var isServerFromTelegramApi: ServersUiController.isServerFromApi(ServersUiController.defaultServerId)
     
-    property bool pageEnabled
+    property bool pageEnabled       // editing (add/remove/mode) allowed
+    property bool listViewEnabled   // viewing/scrolling the list allowed
 
     Component.onCompleted: {
-        if (ConnectionController.isConnected) {
-            PageController.showNotificationMessage(qsTr("Cannot change split tunneling settings during active connection"))
-            root.pageEnabled = false
-        } else if (ServersUiController.isDefaultServerDefaultContainerHasSplitTunneling) {
+        if (ServersUiController.isDefaultServerDefaultContainerHasSplitTunneling) {
             PageController.showNotificationMessage(qsTr("Default server does not support split tunneling function"))
             root.pageEnabled = false
+            root.listViewEnabled = false
+        } else if (ConnectionController.isConnected) {
+            // While connected the list stays viewable, but editing sites needs a reconnect
+            // (site routes are applied on connect), so editing controls are disabled.
+            PageController.showNotificationMessage(qsTr("Disconnect to change the site list — it is view-only while connected"))
+            root.pageEnabled = false
+            root.listViewEnabled = true
         } else {
             root.pageEnabled = true
+            root.listViewEnabled = true
         }
     }
 
@@ -172,7 +178,7 @@ PageType {
 
         width: parent.width
 
-        enabled: root.pageEnabled
+        enabled: root.listViewEnabled
         clip: true
 
         model: SortFilterProxyModel {
@@ -206,7 +212,14 @@ PageType {
                 rightImageSource: "qrc:/images/controls/trash.svg"
                 rightImageColor: AmneziaStyle.color.paleGray
 
+                rightButton.enabled: root.pageEnabled
+
                 clickedFunction: function() {
+                    if (!root.pageEnabled) {
+                        PageController.showNotificationMessage(qsTr("Disconnect to change the site list"))
+                        return
+                    }
+
                     var headerText = qsTr("Remove ") + url + "?"
                     var yesButtonText = qsTr("Continue")
                     var noButtonText = qsTr("Cancel")

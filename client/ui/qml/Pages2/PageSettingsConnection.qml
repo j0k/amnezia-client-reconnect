@@ -151,6 +151,44 @@ PageType {
             DividerType {
                 visible: GC.isDesktop()
             }
+
+            LabelWithButtonType {
+                id: reconnectButton
+                visible: GC.isDesktop()
+
+                Layout.fillWidth: true
+
+                text: qsTr("Auto-reconnect")
+                descriptionText: qsTr("Reconnect the VPN when ping to your hosts fails")
+                rightImageSource: "qrc:/images/controls/chevron-right.svg"
+
+                clickedFunction: function() {
+                    PageController.goToPage(PageEnum.PageSettingsReconnect)
+                }
+            }
+
+            DividerType {
+                visible: GC.isDesktop()
+            }
+
+            LabelWithButtonType {
+                id: directProxyButton
+                visible: GC.isDesktop()
+
+                Layout.fillWidth: true
+
+                text: qsTr("Direct proxy")
+                descriptionText: qsTr("Local proxy that bypasses the VPN for region-locked sites")
+                rightImageSource: "qrc:/images/controls/chevron-right.svg"
+
+                clickedFunction: function() {
+                    PageController.goToPage(PageEnum.PageSettingsDirectProxy)
+                }
+            }
+
+            DividerType {
+                visible: GC.isDesktop()
+            }
         }
     }
 }

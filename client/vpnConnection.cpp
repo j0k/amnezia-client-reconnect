@@ -1,5 +1,6 @@
 #include "vpnConnection.h"
 
+#include <QCoreApplication>
 #include <QDebug>
 #include <QEventLoop>
 #include <QFile>
@@ -472,6 +473,18 @@ void VpnConnection::appendSplitTunnelingConfig()
         }
     }
 
+#if defined(Q_OS_WIN)
+    // Direct proxy: exclude the helper process from the VPN so traffic sent through
+    // it (and its DNS) leaves via the physical interface. Independent of the user's
+    // app split-tunneling settings.
+    if (m_appSettingsRepository->isDirectProxyEnabled()) {
+        const QString proxyPath = QCoreApplication::applicationDirPath() + "/amnezia-direct-proxy.exe";
+        if (!appsJsonArray.contains(proxyPath)) {
+            appsJsonArray.append(proxyPath);
+        }
+    }
+#endif
+
     m_vpnConfiguration.insert(configKey::appSplitTunnelType, appsRouteMode);
     m_vpnConfiguration.insert(configKey::splitTunnelApps, appsJsonArray);
 
@@ -481,6 +494,35 @@ void VpnConnection::appendSplitTunnelingConfig()
     qDebug() << QString("App split tunneling is %1, route mode is %2")
                         .arg(m_appSettingsRepository->isAppsSplitTunnelingEnabled() ? "enabled" : "disabled")
                         .arg(appsRouteMode);
+}
+
+void VpnConnection::reapplySplitTunneling()
+{
+#if defined(Q_OS_WIN) && defined(AMNEZIA_DESKTOP)
+    if (connectionState() != Vpn::ConnectionState::Connected) {
+        qDebug() << "reapplySplitTunneling: not connected, skipping live update";
+        return;
+    }
+
+    // Refresh the split-tunnel / killswitch sections from the current settings.
+    appendSplitTunnelingConfig();
+    appendKillSwitchConfig();
+
+    QJsonObject config = m_vpnConfiguration;
+    config.insert("vpnServer", m_remoteAddress);
+    // We are already connected, so let the daemon auto-detect the adapters (index 0).
+    config.insert("inetAdapterIndex", 0);
+    config.insert("vpnAdapterIndex", 0);
+
+    qDebug() << "reapplySplitTunneling: pushing updated split-tunnel apps to the daemon";
+
+    IpcClient::withInterface([&config](QSharedPointer<IpcInterfaceReplica> iface) {
+        auto reply = iface->enablePeerTraffic(config);
+        if (!reply.waitForFinished() || !reply.returnValue()) {
+            qWarning() << "reapplySplitTunneling: enablePeerTraffic failed";
+        }
+    });
+#endif
 }
 
 #ifdef Q_OS_ANDROID

@@ -56,6 +56,10 @@ public slots:
     void onKillSwitchModeChanged(bool enabled);
     void disconnectSlots();
 
+    // Re-applies the split-tunneling config (app/site lists) to the running daemon without
+    // tearing down the tunnel. Used to add/remove apps live while connected.
+    void reapplySplitTunneling();
+
     void setConnectionState(Vpn::ConnectionState state);
 
 signals:

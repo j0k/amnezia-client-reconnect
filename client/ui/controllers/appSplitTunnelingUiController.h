@@ -5,6 +5,7 @@
 #include <QVector>
 
 #include "core/controllers/appSplitTunnelingController.h"
+#include "core/controllers/connectionController.h"
 #include "core/utils/errorCodes.h"
 #include "core/utils/routeModes.h"
 #include "core/utils/commonStructs.h"
@@ -20,6 +21,7 @@ class AppSplitTunnelingUiController : public QObject
 public:
     explicit AppSplitTunnelingUiController(AppSplitTunnelingController* appSplitTunnelingController,
                                           AppSplitTunnelingModel* appSplitTunnelingModel,
+                                          ConnectionController* connectionController,
                                           QObject *parent = nullptr);
 
 public slots:
@@ -43,6 +45,7 @@ signals:
 private:
     AppSplitTunnelingController* m_appSplitTunnelingController;
     AppSplitTunnelingModel* m_appSplitTunnelingModel;
+    ConnectionController* m_connectionController;
 };
 
 #endif // APPSPLITTUNNELINGUICONTROLLER_H

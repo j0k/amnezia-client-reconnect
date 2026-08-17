@@ -66,7 +66,35 @@ public:
     void setKillSwitchEnabled(bool enabled);
     bool isStrictKillSwitchEnabled() const;
     void setStrictKillSwitchEnabled(bool enabled);
-    
+
+    // Auto-reconnect watchdog (pings a list of hosts periodically and reconnects the VPN if they are unreachable)
+    bool isReconnectEnabled() const;
+    void setReconnectEnabled(bool enabled);
+    int reconnectIntervalMinutes() const;
+    void setReconnectIntervalMinutes(int minutes);
+    QStringList reconnectHosts() const;
+    void setReconnectHosts(const QStringList &hosts);
+    int reconnectFailMode() const;
+    void setReconnectFailMode(int mode);
+    bool isReconnectRandomOrder() const;
+    void setReconnectRandomOrder(bool enabled);
+    int reconnectLogCategories() const;
+    void setReconnectLogCategories(int categories);
+    int reconnectStuckTimeoutSeconds() const;
+    void setReconnectStuckTimeoutSeconds(int seconds);
+    int reconnectPauseSeconds() const;
+    void setReconnectPauseSeconds(int seconds);
+
+    // Direct proxy (local proxy whose traffic bypasses the VPN)
+    bool isDirectProxyEnabled() const;
+    void setDirectProxyEnabled(bool enabled);
+    int directProxyType() const; // 0 = SOCKS5 (default), 1 = HTTP CONNECT
+    void setDirectProxyType(int type);
+    int directProxyPort() const;
+    void setDirectProxyPort(int port);
+    bool isDirectProxyLogEnabled() const;
+    void setDirectProxyLogEnabled(bool enabled);
+
     bool isAutoConnect() const;
     void setAutoConnect(bool enabled);
     bool isStartMinimized() const;

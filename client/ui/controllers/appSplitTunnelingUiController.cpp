@@ -8,10 +8,12 @@
 
 AppSplitTunnelingUiController::AppSplitTunnelingUiController(AppSplitTunnelingController* appSplitTunnelingController,
                                                               AppSplitTunnelingModel* appSplitTunnelingModel,
+                                                              ConnectionController* connectionController,
                                                               QObject *parent)
     : QObject(parent),
       m_appSplitTunnelingController(appSplitTunnelingController),
-      m_appSplitTunnelingModel(appSplitTunnelingModel)
+      m_appSplitTunnelingModel(appSplitTunnelingModel),
+      m_connectionController(connectionController)
 {
     m_appSplitTunnelingModel->updateModel(m_appSplitTunnelingController->getApps());
 }
@@ -25,6 +27,7 @@ void AppSplitTunnelingUiController::addApp(const QString &appPath)
     }
 
     if (m_appSplitTunnelingController->addApp(appInfo)) {
+        m_connectionController->reapplySplitTunneling();
         emit finished(tr("Application added: %1").arg(appInfo.appName));
     } else {
         emit errorOccurred(tr("The application has already been added"));
@@ -37,6 +40,7 @@ void AppSplitTunnelingUiController::addApps(QVector<QPair<QString, QString>> app
         amnezia::InstalledAppInfo appInfo { app.first, app.second, "" };
         m_appSplitTunnelingController->addApp(appInfo);
     }
+    m_connectionController->reapplySplitTunneling();
     emit finished(tr("The selected applications have been added"));
 }
 
@@ -45,6 +49,7 @@ void AppSplitTunnelingUiController::removeApp(const int index)
     auto modelIndex = m_appSplitTunnelingModel->index(index);
     auto appPath = m_appSplitTunnelingModel->data(modelIndex, AppSplitTunnelingModel::Roles::AppPathRole).toString();
     m_appSplitTunnelingController->removeApp(index);
+    m_connectionController->reapplySplitTunneling();
 
     QFileInfo fileInfo(appPath);
     emit finished(tr("Application removed: %1").arg(fileInfo.fileName()));
@@ -53,12 +58,14 @@ void AppSplitTunnelingUiController::removeApp(const int index)
 void AppSplitTunnelingUiController::toggleSplitTunneling(bool enabled)
 {
     m_appSplitTunnelingController->toggleSplitTunneling(enabled);
+    m_connectionController->reapplySplitTunneling();
     emit isSplitTunnelingEnabledChanged();
 }
 
 void AppSplitTunnelingUiController::setRouteMode(int routeMode)
 {
     m_appSplitTunnelingController->setRouteMode(static_cast<amnezia::AppsRouteMode>(routeMode));
+    m_connectionController->reapplySplitTunneling();
     emit routeModeChanged();
 }
 
