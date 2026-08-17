@@ -1,0 +1,132 @@
+{
+	"root": {
+		"id": "root0000",
+		"text": "AmneziaVPN — форк reconnect (отличия от оригинала)",
+		"notes": "База: upstream 4.9.0.3. Изменения только в клиенте + один helper. Служба и драйверы не менялись.",
+		"layout": "map",
+		"shape": "ellipse",
+		"children": [
+			{
+				"id": "aw000000",
+				"text": "1. Auto-reconnect watchdog",
+				"notes": "Главная функция: пинг хостов и авто-переподключение VPN при обрыве.",
+				"color": "#e67e22",
+				"children": [
+					{ "id": "aw000001", "text": "Периодический пинг списка хостов", "notes": "" },
+					{ "id": "aw000002", "text": "Интервал проверки (минуты, по умолч. 10)", "notes": "" },
+					{ "id": "aw000003", "text": "Условие: All / Any unreachable", "notes": "All — реконнект если недоступны все (по умолч.); Any — если хотя бы один." },
+					{ "id": "aw000004", "text": "Ping in random order", "notes": "" },
+					{ "id": "aw000005", "text": "Список хостов (add / remove)", "notes": "По умолчанию 1.1.1.1, 8.8.8.8" },
+					{ "id": "aw000006", "text": "Status + детализация по каждому хосту", "notes": "[OK] reachable / [FAIL] unreachable" },
+					{ "id": "aw000007", "text": "Кнопка Check now", "notes": "" }
+				]
+			},
+			{
+				"id": "ts000000",
+				"text": "2. Кнопка Test (диагностика хоста)",
+				"notes": "Ping на 4 пакета под каждым хостом.",
+				"color": "#f39c12",
+				"children": [
+					{ "id": "ts000001", "text": "Резолв IP", "notes": "" },
+					{ "id": "ts000002", "text": "Дошло / потеряно пакетов, % потерь", "notes": "" },
+					{ "id": "ts000003", "text": "RTT + сырой вывод ping", "notes": "" }
+				]
+			},
+			{
+				"id": "sr000000",
+				"text": "3. Восстановление при зависании реконнекта",
+				"notes": "Фикс реального бага: реконнект застревал в Connecting на 8 часов.",
+				"color": "#e74c3c",
+				"children": [
+					{ "id": "sr000001", "text": "Детект: connecting дольше порога", "notes": "" },
+					{ "id": "sr000002", "text": "Прерывание → пауза → повтор (в цикле)", "notes": "" },
+					{ "id": "sr000003", "text": "Настройки в секундах: timeout (120) и pause (120)", "notes": "" }
+				]
+			},
+			{
+				"id": "hi000000",
+				"text": "4. Индикаторы на главном экране",
+				"notes": "Статус-строки под Split tunneling, клик ведёт на страницу.",
+				"color": "#9b59b6",
+				"children": [
+					{ "id": "hi000001", "text": "Auto-reconnect enabled", "notes": "" },
+					{ "id": "hi000002", "text": "Direct proxy enabled (адрес)", "notes": "" },
+					{ "id": "hi000003", "text": "Logs", "notes": "" }
+				]
+			},
+			{
+				"id": "el000000",
+				"text": "5. Событийный лог (txt с таймстампами)",
+				"notes": "Файл: %APPDATA%/…/AmneziaVPN/log/reconnect-events.log",
+				"color": "#3498db",
+				"children": [
+					{ "id": "el000001", "text": "4 категории-чекбокса (на лету)", "notes": "" },
+					{ "id": "el000002", "text": "CONNECT — ручные подключения", "notes": "" },
+					{ "id": "el000003", "text": "AUTO-RECONNECT — с причиной", "notes": "" },
+					{ "id": "el000004", "text": "PING-CHECK — результат проверок", "notes": "" },
+					{ "id": "el000005", "text": "HOST-TEST — результаты Test", "notes": "" },
+					{ "id": "el000006", "text": "Open / Clear log", "notes": "" }
+				]
+			},
+			{
+				"id": "st000000",
+				"text": "6. Split-tunneling приложений на лету",
+				"notes": "В оригинале применялось только при подключении; страница блокировалась.",
+				"color": "#1abc9c",
+				"children": [
+					{ "id": "st000001", "text": "Add / remove без реконнекта", "notes": "" },
+					{ "id": "st000002", "text": "Редактирование при активном VPN", "notes": "" },
+					{ "id": "st000003", "text": "Через IPC enablePeerTraffic (служба не менялась)", "notes": "reapplySplitTunneling обновляет драйвер без разрыва туннеля." },
+					{ "id": "st000004", "text": "Site split tunnel: просмотр списка при активном VPN", "notes": "" }
+				]
+			},
+			{
+				"id": "dp000000",
+				"text": "7. Direct proxy (локальный прокси в обход VPN)",
+				"notes": "Для сайтов с обратной гео-блокировкой (matchtv.ru — «недоступно в регионе»).",
+				"color": "#2ecc71",
+				"children": [
+					{ "id": "dp000001", "text": "Helper amnezia-direct-proxy.exe исключён из VPN", "notes": "Через split-tunnel драйвер: и трафик, и DNS процесса идут напрямую." },
+					{ "id": "dp000002", "text": "Тип: SOCKS5 (remote DNS) / HTTP CONNECT", "notes": "" },
+					{ "id": "dp000003", "text": "Порт (8899) + адрес + Copy", "notes": "" },
+					{ "id": "dp000004", "text": "Launch browser (Chrome / Edge)", "notes": "Новое: запуск изолированного окна браузера через прокси одной кнопкой." },
+					{ "id": "dp000005", "text": "Лог запрошенных хостов (открытие доменов сайта)", "notes": "" },
+					{ "id": "dp000006", "text": "Helper без консоли, сам закрывается с клиентом", "notes": "" }
+				]
+			},
+			{
+				"id": "tr000000",
+				"text": "8. Улучшения системного трея",
+				"notes": "",
+				"color": "#7f8c8d",
+				"children": [
+					{ "id": "tr000001", "text": "Полноцветная иконка на Windows", "notes": "В оригинале — монохромная маска, легко теряется." },
+					{ "id": "tr000002", "text": "Tooltip + повторный show()", "notes": "Переживает перезапуск панели задач." }
+				]
+			},
+			{
+				"id": "tech0000",
+				"text": "Технически",
+				"notes": "",
+				"color": "#34495e",
+				"children": [
+					{ "id": "tech0001", "text": "Изменения только в client/ + directproxy helper", "notes": "" },
+					{ "id": "tech0002", "text": "Служба AmneziaVPN-service и драйверы не менялись", "notes": "" },
+					{ "id": "tech0003", "text": "Версия форка 4.10.0.0 (база upstream 4.9.0.3)", "notes": "" },
+					{ "id": "tech0004", "text": "Собирается под Windows (Qt 6.10, MSVC, Conan) + IFW-инсталлятор", "notes": "" }
+				]
+			},
+			{
+				"id": "no000000",
+				"text": "Не вошло (ограничения)",
+				"notes": "",
+				"color": "#c0392b",
+				"collapsed": true,
+				"children": [
+					{ "id": "no000001", "text": "App «только выбранные через VPN» на Windows", "notes": "Драйвер Mullvad умеет только исключать приложения — include-режим невозможен. Для адресов работает." },
+					{ "id": "no000002", "text": "Нет лимита / backoff числа реконнектов", "notes": "Кроме паузы при зависании — повтор каждый интервал, пока связь не вернётся." }
+				]
+			}
+		]
+	}
+}
