@@ -14,6 +14,21 @@
 >
 > 📄 [Full list of differences](./DIFFERENCE.md) · 🛠️ [Build & release workflow](./WORKFLOW.md) · 🔐 HTTPS-proxy certificates: [EN](./README_certs.md) / [RU](./README_certs_RU.md)
 >
+> ### 🛑 Stopping AmneziaVPN and its services from the console
+> Useful before an update/rebuild (a running exe cannot be overwritten) or to shut everything down cleanly. Run PowerShell **as Administrator** for the service commands.
+> ```powershell
+> # 1. Close the GUI client (this drops the VPN connection)
+> Stop-Process -Name AmneziaVPN -Force
+>
+> # 2. Stop the privileged service (the tunnel service AmneziaWGTunnel$AmneziaVPN stops with it)
+> Stop-Service -Name 'AmneziaVPN-service' -Force        # or:  net stop AmneziaVPN-service
+>
+> # 3. (optional) stop the local proxy helpers — they normally exit together with the client
+> Stop-Process -Name amnezia-direct-proxy -Force -ErrorAction SilentlyContinue
+> ```
+> Start again: `Start-Service -Name 'AmneziaVPN-service'`, then launch the client.
+> Disable service autostart: `Set-Service -Name 'AmneziaVPN-service' -StartupType Manual`.
+>
 > _The original AmneziaVPN README follows._
 
 

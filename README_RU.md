@@ -14,6 +14,21 @@
 >
 > 📄 [Полный список отличий](./DIFFERENCE.md) · 🛠️ [Сборка и релиз](./WORKFLOW.md) · 🔐 Сертификаты HTTPS-прокси: [RU](./README_certs_RU.md) / [EN](./README_certs.md)
 >
+> ### 🛑 Как остановить AmneziaVPN и его службы из консоли
+> Пригодится перед обновлением/пересборкой (запущенный exe нельзя перезаписать) или чтобы всё аккуратно выключить. Команды для службы запускай в PowerShell **от администратора**.
+> ```powershell
+> # 1. Закрыть клиент (это оборвёт VPN-подключение)
+> Stop-Process -Name AmneziaVPN -Force
+>
+> # 2. Остановить привилегированную службу (служба туннеля AmneziaWGTunnel$AmneziaVPN остановится вместе с ней)
+> Stop-Service -Name 'AmneziaVPN-service' -Force        # или:  net stop AmneziaVPN-service
+>
+> # 3. (опционально) остановить локальные прокси-хелперы — обычно они завершаются вместе с клиентом
+> Stop-Process -Name amnezia-direct-proxy -Force -ErrorAction SilentlyContinue
+> ```
+> Запустить снова: `Start-Service -Name 'AmneziaVPN-service'`, затем открыть клиент.
+> Отключить автозапуск службы: `Set-Service -Name 'AmneziaVPN-service' -StartupType Manual`.
+>
 > _Далее — оригинальный README AmneziaVPN._
 
 [![Build Status](https://github.com/amnezia-vpn/amnezia-client/actions/workflows/deploy.yml/badge.svg?branch=dev)](https://github.com/amnezia-vpn/amnezia-client/actions/workflows/deploy.yml?query=branch:dev)
