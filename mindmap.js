@@ -291,12 +291,17 @@
     var dragging = false, dragMoved = false, px = 0, py = 0;
     view.addEventListener('pointerdown', function (e) {
       if (e.button !== 0) return;
-      dragging = true; dragMoved = false; px = e.clientX; py = e.clientY; view.setPointerCapture(e.pointerId); world.classList.remove('smooth');
+      dragging = true; dragMoved = false; px = e.clientX; py = e.clientY; world.classList.remove('smooth');
+      // NOTE: no setPointerCapture here — capturing on pointerdown retargets pointerup to the
+      // container and the browser then fires `click` on the common ancestor, not on the node.
     });
     view.addEventListener('pointermove', function (e) {
       if (!dragging) return;
       var dx = e.clientX - px, dy = e.clientY - py;
-      if (!dragMoved && Math.abs(dx) + Math.abs(dy) > 4) { dragMoved = true; view.classList.add('dragging'); }
+      if (!dragMoved && Math.abs(dx) + Math.abs(dy) > 4) {
+        dragMoved = true; view.classList.add('dragging');
+        try { view.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+      }
       if (dragMoved) { vx += dx; vy += dy; px = e.clientX; py = e.clientY; setView(false); }
     });
     function endDrag() { dragging = false; view.classList.remove('dragging'); setTimeout(function () { dragMoved = false; }, 0); }
