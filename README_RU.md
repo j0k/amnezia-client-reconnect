@@ -2,6 +2,19 @@
 
 ### _Лучший клиент для создания VPN на собственном сервере_
 
+> ### 🔀 Об этом форке — `amnezia-client-reconnect`
+> Личный форк AmneziaVPN с дополнительными функциями для **десктопа (Windows)** поверх официального клиента:
+> - 🔁 **Auto-reconnect watchdog** — пингует твои хосты и переподключает VPN, когда связь реально пропала; вытаскивает реконнект, зависший в *Connecting*; событийный лог с таймстампами.
+> - ⚡ **Live split-tunneling приложений** — добавление/удаление без реконнекта; редактируется при активном VPN.
+> - 🌐 **Два локальных прокси** — один *мимо* VPN (реальный IP для гео-заблокированных сайтов), другой *через* VPN (поделиться VPN-выходом с другим ПК). Адрес привязки, порт, опциональный логин/пароль, allowlist IP; **SOCKS5 / HTTP / HTTPS (TLS)** с автосгенерированным сертификатом.
+> - 🎞️ **Process Recorder** — таймлайн процессов (NEW / EXITED с длительностью, полный путь, перемотка назад).
+>
+> Служба VPN и драйверы **не менялись** — всё работает со штатной службой. Подписанные установщики для Windows (`.exe` / `.msi`) — на странице [Releases](https://github.com/j0k/amnezia-client-reconnect/releases).
+>
+> 📄 [Полный список отличий](./DIFFERENCE.md) · 🛠️ [Сборка и релиз](./WORKFLOW.md) · 🔐 Сертификаты HTTPS-прокси: [RU](./README_certs_RU.md) / [EN](./README_certs.md)
+>
+> _Далее — оригинальный README AmneziaVPN._
+
 [![Build Status](https://github.com/amnezia-vpn/amnezia-client/actions/workflows/deploy.yml/badge.svg?branch=dev)](https://github.com/amnezia-vpn/amnezia-client/actions/workflows/deploy.yml?query=branch:dev)
 [![Gitpod ready-to-code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/amnezia-vpn/amnezia-client)
 

@@ -2,6 +2,19 @@
 
 ### _The best client for self-hosted VPN_
 
+> ### 🔀 About this fork — `amnezia-client-reconnect`
+> A personal fork of AmneziaVPN with extra **desktop (Windows)** features on top of the official client:
+> - 🔁 **Auto-reconnect watchdog** — pings your hosts and reconnects the VPN when the link is actually dead; recovers from reconnects stuck in *Connecting*; timestamped event log.
+> - ⚡ **Live app split-tunneling** — add/remove apps without reconnecting; editable while connected.
+> - 🌐 **Two local proxies** — one that *bypasses* the VPN (real IP for region-locked sites) and one that goes *through* it (share your VPN exit with another PC). Bind address, port, optional login/password, IP allowlist; **SOCKS5 / HTTP / HTTPS (TLS)** with an auto-generated certificate.
+> - 🎞️ **Process Recorder** — a timeline of running processes (NEW / EXITED with run time, full path, scrub back in time).
+>
+> The VPN service and drivers are **unchanged** — everything talks to the stock service. Signed Windows installers (`.exe` / `.msi`) are on the [Releases](https://github.com/j0k/amnezia-client-reconnect/releases) page.
+>
+> 📄 [Full list of differences](./DIFFERENCE.md) · 🛠️ [Build & release workflow](./WORKFLOW.md) · 🔐 HTTPS-proxy certificates: [EN](./README_certs.md) / [RU](./README_certs_RU.md)
+>
+> _The original AmneziaVPN README follows._
+
 
 [![Build Status](https://github.com/amnezia-vpn/amnezia-client/actions/workflows/deploy.yml/badge.svg?branch=dev)](https://github.com/amnezia-vpn/amnezia-client/actions/workflows/deploy.yml?query=branch:dev)
 [![Gitpod ready-to-code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/amnezia-vpn/amnezia-client)
