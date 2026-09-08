@@ -2,7 +2,7 @@
 	"root": {
 		"id": "root0002",
 		"text": "AmneziaVPN Reconnect+Proxy",
-		"notes": "Форк amnezia-client (апстрим 5.0.1.1). Только клиент: служба VPN и драйверы штатные. Доки: DIFFERENCE.md, docs/reconnect/SETUP_RU.md, docs/proxy/ARCHITECTURE_RU.md",
+		"notes": "Форк amnezia-client (апстрим 5.0.1.1). Только клиент: служба VPN и драйверы штатные. Доки: DIFFERENCE_RU.md, docs/reconnect/SETUP_RU.md, docs/proxy/ARCHITECTURE_RU.md",
 		"layout": "map",
 		"shape": "ellipse",
 		"children": [

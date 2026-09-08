@@ -12,7 +12,7 @@
 >
 > The VPN service and drivers are **unchanged** — everything talks to the stock service. Signed Windows installers (`.exe` / `.msi`) are on the [Releases](https://github.com/j0k/amnezia-client-reconnect/releases) page.
 >
-> 📄 [Full list of differences](./DIFFERENCE.md) · 🛠️ [Build & release workflow](./WORKFLOW.md) · 🔐 HTTPS-proxy certificates: [EN](./README_certs.md) / [RU](./README_certs_RU.md)
+> 📄 Full list of differences: [EN](./DIFFERENCE.md) / [RU](./DIFFERENCE_RU.md) · 🛠️ [Build & release workflow](./WORKFLOW.md) · 🔐 HTTPS-proxy certificates: [EN](./README_certs.md) / [RU](./README_certs_RU.md)
 > 📚 Docs: 🔁 Auto-reconnect setup & which hosts to ping — [EN](./docs/reconnect/SETUP.md) / [RU](./docs/reconnect/SETUP_RU.md) · 🔀 Local proxies architecture (code + diagrams) — [EN](./docs/proxy/ARCHITECTURE.md) / [RU](./docs/proxy/ARCHITECTURE_RU.md) · 📜 [History](./HISTORY.md) · 🧠 Mind map ([My Mind](https://juri-konoplev.pro/my-mind/)): [EN](./docs/vpn-amnezia-reconnect_en.mymind) / [RU](./docs/vpn-amnezia-reconnect_ru.mymind)
 >
 > ### 🛑 Stopping AmneziaVPN and its services from the console

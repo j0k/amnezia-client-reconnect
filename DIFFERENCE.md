@@ -1,93 +1,98 @@
-# Отличия форка `amnezia-client-reconnect` от оригинала
+# How the `amnezia-client-reconnect` fork differs from upstream
 
-Форк основан на официальном клиенте [AmneziaVPN](https://github.com/amnezia-vpn/amnezia-client) (ветка `dev`).
-Цель форка — автоматически переподключать VPN, когда связь фактически пропадает (например, ночные обрывы у провайдера), и упростить работу со split-tunneling «на лету».
+> 🇷🇺 Русская версия: [DIFFERENCE_RU.md](./DIFFERENCE_RU.md)
 
-Изменения — **только на стороне клиента** (`client/`) плюс один новый автономный helper-процесс (`directproxy/`). **Служба (`AmneziaVPN-service`) и драйверы не менялись** — форк работает со штатной службой, поэтому все привилегированные операции (маршруты, split-tunnel, killswitch) идут через уже существующий IPC.
+The fork is based on the official [AmneziaVPN](https://github.com/amnezia-vpn/amnezia-client) client (`dev` branch).
+Its goal is to reconnect the VPN automatically when the link actually dies (e.g. nightly ISP drops) and to make split-tunneling editable "live".
 
----
-
-## История версий (Changelog)
-
-### Process Recorder, два прокси, HTTPS (2026-09-08; база — upstream 5.0.1.1)
-- **Process Recorder** (Settings → Connection → Process recorder): снимки всех процессов каждые N сек (настраиваемо, напр. `3.33`), метки **NEW** / **EXITED с длительностью работы**, раскрытие по клику (PID/PPID/потоки/время старта/полный путь + Copy path), ползунок времени (LIVE / перемотка), фильтр, «только новые».
-- **Два локальных прокси** вместо одного: **Direct** (мимо VPN, реальный IP) и **VPN** (через туннель — другой комп выходит через твой VPN). У каждого: адрес привязки (`127.0.0.1` / `0.0.0.0` / IP), порт, **опциональный логин/пароль** (HTTP 407 Basic + SOCKS5 RFC1929), **allowlist клиентских IP**, лог. VPN-прокси запускается из отдельной копии helper'а в `%APPDATA%` (иначе split-tunnel исключил бы оба).
-- **HTTPS (TLS) прокси** — третий тип: канал клиент→прокси шифруется; самоподписанный сертификат генерируется автоматически, кнопка экспорта `.cer`. Helper теперь линкуется с OpenSSL. Инструкции: `README_certs.md` / `README_certs_RU.md`.
-- Docs: `WORKFLOW.md` (сборка/установщики/мерж/релиз).
-
-### Слияние с upstream 5.0.1.1 (2026-08-17)
-- Влит официальный `dev` (51 коммит, ~205 файлов): поддержка **AWG 3.0 / 3.1**, фиксы OpenVPN (креш при подключении), XRay/VLESS/Telemt, split-tunnel (обработка IP, добавление подсети), **IPC input validation**, captcha на обновлениях, мобильные/CI. Версия форка синхронизирована с upstream — **5.0.1.1**.
-- Конфликты (2 файла) разрешены: взята версия upstream; трей — принят рефактор upstream для macOS (`m_statusIcon`), сохранена полноцветная иконка форка на Windows/Linux.
-- Все фичи форка (ниже) собираются вместе с upstream (build exit 0).
-
-### 4.10.0.0 (форк; база — upstream 4.9.0.3)
-- **Auto-reconnect watchdog**: пинг списка хостов и авто-переподключение (интервал, условие all/any, random order, статус + детализация по хостам, Check now).
-- **Кнопка Test** для каждого хоста (IP, потери, RTT).
-- **Восстановление при зависании реконнекта**: если connecting-фаза длится дольше порога — прерывание, пауза, повтор (оба таймера настраиваются в секундах).
-- **Событийный лог** watchdog’а (txt, 4 категории-чекбокса, open/clear).
-- **Индикаторы на главном экране**: «Auto-reconnect enabled», «Direct proxy enabled (адрес)», «Logs».
-- **Live split-tunnel приложений** без реконнекта + просмотр списка адресов при активном VPN.
-- **Direct proxy** — локальный прокси в обход VPN (SOCKS5/HTTP helper, исключение из VPN через split-tunnel драйвер, UI: тип/порт/адрес/copy/пример команды/лог; helper без консоли и с parent-watch).
-- **Улучшения трея**: полноцветная иконка на Windows, tooltip, повторный show.
-
-> Новые версии добавлять сюда сверху отдельным разделом `### X.Y.Z`.
+All changes are **client-side only** (`client/`) plus one new standalone helper process (`directproxy/`). **The service (`AmneziaVPN-service`) and the drivers are untouched** — the fork runs on the stock service, so every privileged operation (routes, split-tunnel, killswitch) goes through the IPC that already exists.
 
 ---
 
-## Основные функции
+## Changelog
 
-### 1. Auto-reconnect watchdog (главная функция)
-Периодически пингует список хостов и, если они недоступны, **переподключает VPN**.
+### Process Recorder, two proxies, HTTPS (2026-09-08; base — upstream 5.0.1.1)
+- **Process Recorder** (Settings → Connection → Process recorder): snapshots of all processes every N seconds (configurable, e.g. `3.33`), **NEW** / **EXITED with run time** marks, click to expand (PID/PPID/threads/start time/full path + Copy path), time slider (LIVE / scrub back), filter, "only new".
+- **Two local proxies** instead of one: **Direct** (bypasses the VPN, real IP) and **VPN** (through the tunnel — another PC exits through your VPN). Each has a bind address (`127.0.0.1` / `0.0.0.0` / IP), port, **optional login/password** (HTTP 407 Basic + SOCKS5 RFC 1929), **client IP allowlist**, log. The VPN proxy runs from a separate copy of the helper in `%APPDATA%` (otherwise split-tunnel would exclude both).
+- **HTTPS (TLS) proxy** — a third type: the client→proxy channel is encrypted; a self-signed certificate is generated automatically, with an export-`.cer` button. The helper now links OpenSSL. Instructions: `README_certs.md` / `README_certs_RU.md`.
+- Docs: `WORKFLOW.md` (build/installers/merge/release), `docs/reconnect/SETUP{,_RU}.md`, `docs/proxy/ARCHITECTURE{,_RU}.md`, `HISTORY.md`, landing pages `index.html` / `index_ru.html`.
+- Installers are now named `AmneziaVPN_Reconnect_<version>_windows_x64.{exe,msi}`.
 
-**Настройки** (Settings → Connection → Auto-reconnect):
-- **Вкл/выкл** watchdog.
-- **Интервал проверки** (минуты, по умолчанию 10).
-- **Условие реконнекта**:
-  - *All hosts are unreachable* — переподключаться только если недоступны **все** хосты (по умолчанию, безопаснее);
-  - *Any host is unreachable* — если недоступен **хотя бы один** (агрессивнее).
-- **Ping in random order** — пинговать хосты в случайном порядке на каждой проверке.
-- **Список хостов** — добавление/удаление (по умолчанию `1.1.1.1`, `8.8.8.8`).
-- **Status** — текущий статус + детализация по каждому хосту последней проверки
+### Merge with upstream 5.0.1.1 (2026-08-17)
+- Official `dev` merged (51 commits, ~205 files): **AWG 3.0 / 3.1** support, OpenVPN fixes (crash on connect), XRay/VLESS/Telemt, split-tunnel (IP handling, subnet add), **IPC input validation**, captcha on updates, mobile/CI. The fork version is synced with upstream — **5.0.1.1**.
+- Conflicts (2 files) resolved: upstream version taken; tray — upstream's macOS refactor (`m_statusIcon`) accepted, the fork's full-colour icon kept on Windows/Linux.
+- All fork features (below) build together with upstream (build exit 0).
+
+### 4.10.0.0 (fork; base — upstream 4.9.0.3)
+- **Auto-reconnect watchdog**: pings a host list and reconnects automatically (interval, all/any condition, random order, status + per-host details, Check now).
+- **Test button** for every host (IP, loss, RTT).
+- **Stuck-reconnect recovery**: if the connecting phase lasts longer than a threshold — abort, pause, retry (both timers configurable in seconds).
+- **Event log** of the watchdog (txt, 4 checkbox categories, open/clear).
+- **Home-screen indicators**: "Auto-reconnect enabled", "Direct proxy enabled (address)", "Logs".
+- **Live app split-tunneling** without reconnect + viewing the site list while the VPN is up.
+- **Direct proxy** — a local proxy that bypasses the VPN (SOCKS5/HTTP helper, excluded from the VPN via the split-tunnel driver; UI: type/port/address/copy/example command/log; helper has no console and watches its parent).
+- **Tray improvements**: full-colour icon on Windows, tooltip, re-show.
+
+> Add new versions at the top as a separate `### X.Y.Z` section.
+
+---
+
+## Main features
+
+### 1. Auto-reconnect watchdog (the main feature)
+Periodically pings a list of hosts and, if they are unreachable, **reconnects the VPN**.
+
+**Settings** (Settings → Connection → Auto-reconnect):
+- **On/off** switch for the watchdog.
+- **Check interval** (minutes, default 10).
+- **Reconnect condition**:
+  - *All hosts are unreachable* — reconnect only when **every** host fails (default, safer);
+  - *Any host is unreachable* — when **at least one** fails (more aggressive).
+- **Ping in random order** — shuffle the hosts on every check.
+- **Host list** — add/remove (defaults `1.1.1.1`, `8.8.8.8`).
+- **Status** — current status + per-host details of the last check
   (`[OK] 1.1.1.1 - reachable` / `[FAIL] 8.8.8.8 - unreachable`).
-- **Check now** — запустить проверку вручную.
+- **Check now** — run a check manually.
 
-Пинг выполняется системным `ping` (кросс-платформенно: Windows `-n`, Linux/macOS `-c`),
-успех определяется по наличию `TTL=` в ответе (устойчиво к локали).
+Pinging uses the system `ping` (cross-platform: Windows `-n`, Linux/macOS `-c`);
+success is detected by `TTL=` in the reply (locale-independent).
 
-### 2. Кнопка Test для каждого хоста
-Под каждым хостом — кнопка **Test**: одиночная многопакетная диагностика (`ping` на 4 пакета),
-показывает **резолв IP, кол-во дошедших/потерянных пакетов, % потерь, RTT** и сырой вывод.
-Работает через отдельный процесс, не мешает watchdog’у.
+Detailed setup and which hosts to enter and why: [`docs/reconnect/SETUP.md`](./docs/reconnect/SETUP.md).
 
-### 3. Восстановление при зависании реконнекта
-Если авто-реконнект **завис в состоянии `Connecting…`** (частая проблема — соединение не поднимается),
-watchdog это обнаруживает и восстанавливается сам:
-- если connecting-фаза длится дольше порога → попытка **прерывается**, пауза, затем **повтор** (в цикле, пока не поднимется).
+### 2. Test button for every host
+Under each host there is a **Test** button: a one-off multi-packet diagnostic (`ping` with 4 packets)
+showing **resolved IP, packets received/lost, loss %, RTT** and the raw output.
+Runs in a separate process and does not interfere with the watchdog.
 
-**Настройки** (Settings → Connection → Auto-reconnect → Stuck-connection recovery), в **секундах**:
-- **Connecting timeout** — порог зависания (по умолчанию 120).
-- **Pause before retry** — пауза перед повтором (по умолчанию 120).
+### 3. Stuck-reconnect recovery
+If an auto-reconnect **hangs in `Connecting…`** (a common problem — the connection never comes up),
+the watchdog detects it and recovers on its own:
+- if the connecting phase lasts longer than the threshold → the attempt is **aborted**, a pause, then a **retry** (in a loop until it comes up).
 
-Успешное подключение (авто или ручное) отменяет ожидание/повтор.
+**Settings** (Settings → Connection → Auto-reconnect → Stuck-connection recovery), in **seconds**:
+- **Connecting timeout** — hang threshold (default 120).
+- **Pause before retry** — cooldown before the retry (default 120).
 
-### 4. Индикаторы на главном экране
-На главном экране под «Split tunneling enabled» добавлены статус-строки (клик ведёт на нужную страницу):
-- **«Auto-reconnect enabled»** — когда watchdog включён;
-- **«Direct proxy enabled (адрес)»** — когда включён direct-proxy, с показом адреса прокси;
-- **«Logs»** — быстрый переход на страницу логов.
+A successful connection (automatic or manual) cancels the wait/retry.
 
-### 5. Событийный лог (txt с таймстампами)
-Логирование ключевых событий в текстовый файл:
+### 4. Home-screen indicators
+Under "Split tunneling enabled" on the home screen there are status lines (click opens the relevant page):
+- **"Auto-reconnect enabled"** — when the watchdog is on;
+- **"Direct proxy enabled (address)"** — when the direct proxy is on, showing the proxy address;
+- **"Logs"** — quick jump to the logs page.
+
+### 5. Event log (txt with timestamps)
+Key events are logged to a text file:
 `%APPDATA%/…/AmneziaVPN/log/reconnect-events.log`
 
-**Настройки** (Settings → Connection → Auto-reconnect → Event log) — категории-чекбоксы, применяются мгновенно:
-- **Connect / disconnect** — ручные подключения/отключения (`[CONNECT]`);
-- **Auto-reconnects** — срабатывания watchdog с указанием причины (`[AUTO-RECONNECT]`);
-- **Ping checks** — результат каждой периодической проверки (`[PING-CHECK]`);
-- **Host tests** — результаты кнопки Test (`[HOST-TEST]`).
-- Кнопки **Open log file** / **Clear log**.
+**Settings** (Settings → Connection → Auto-reconnect → Event log) — checkbox categories, applied instantly:
+- **Connect / disconnect** — manual connections/disconnections (`[CONNECT]`);
+- **Auto-reconnects** — watchdog triggers with the reason (`[AUTO-RECONNECT]`);
+- **Ping checks** — the result of every periodic check (`[PING-CHECK]`);
+- **Host tests** — results of the Test button (`[HOST-TEST]`).
+- **Open log file** / **Clear log** buttons.
 
-Пример:
+Example:
 ```
 [2026-07-17 05:35:28] [PING-CHECK] Ping check: 0/6 reachable; unreachable: www.com, google.com, ya.ru
 [2026-07-17 05:35:28] [AUTO-RECONNECT] Auto-reconnect triggered (unreachable: www.com, google.com, ya.ru)
@@ -95,105 +100,108 @@ watchdog это обнаруживает и восстанавливается �
 [2026-07-17 05:35:31] [AUTO-RECONNECT] Auto-reconnect: reconnected successfully
 ```
 
-### 6. Split-tunneling приложений «на лету»
-В оригинале список приложений split-tunnel применялся **только при подключении**, а страница
-блокировалась при активном VPN. В форке:
-- добавление/удаление приложений и смена режима **применяются к активному туннелю без реконнекта**;
-- страница App split tunneling **редактируется при подключённом VPN**.
+### 6. Live app split-tunneling
+Upstream applies the app split-tunnel list **only at connect time**, and the page is locked
+while the VPN is up. In the fork:
+- adding/removing apps and changing the mode **apply to the active tunnel without a reconnect**;
+- the App split tunneling page **is editable while connected**.
 
-Реализовано через переиспользование существующего IPC-слота `enablePeerTraffic`
-(без изменений в службе): изменение списка → `ConnectionController::reapplySplitTunneling()`
-→ `VpnConnection::reapplySplitTunneling()` → повторная отправка split-tunnel конфига службе,
-которая обновляет список приложений в драйвере, не разрывая туннель.
+Implemented by reusing the existing IPC slot `enablePeerTraffic`
+(no service changes): list change → `ConnectionController::reapplySplitTunneling()`
+→ `VpnConnection::reapplySplitTunneling()` → the split-tunnel config is re-sent to the service,
+which updates the app list in the driver without tearing the tunnel down.
 
-Дополнительно: страница **Site split tunneling** (адреса) при активном VPN теперь **доступна для
-просмотра/прокрутки** списка (в оригинале вся страница блокировалась). Редактирование адресов при
-подключении оставлено заблокированным — у сайтов применение идёт через маршруты, а не через драйвер.
+In addition, the **Site split tunneling** page (addresses) is now **viewable/scrollable** while the
+VPN is up (upstream locked the whole page). Editing addresses while connected stays locked —
+sites are applied through routes, not through the driver.
 
-### 7. Локальные прокси — Direct (мимо VPN) и VPN (через туннель)
-Два независимых локальных прокси на базе helper-exe `amnezia-direct-proxy.exe`:
-- **Direct proxy** — трафик идёт **мимо VPN** (реальный IP и DNS). Для сайтов с обратной
-  гео-блокировкой (например `matchtv.ru`). Helper **исключается из VPN** через существующий
-  split-tunnel драйвер — и соединения, и DNS выходят напрямую.
-- **VPN proxy** — трафик идёт **через туннель**: другой компьютер подключается к нему и
-  выходит через твой VPN. Запускается из **отдельной копии** helper'а в `%APPDATA%`
-  (split-tunnel исключает по пути exe — иначе исключились бы оба).
+### 7. Local proxies — Direct (bypass VPN) and VPN (through the tunnel)
+Two independent local proxies based on the helper exe `amnezia-direct-proxy.exe`:
+- **Direct proxy** — traffic goes **around the VPN** (real IP and DNS). For sites with reverse
+  geo-blocking (e.g. `matchtv.ru`). The helper is **excluded from the VPN** through the existing
+  split-tunnel driver — both connections and DNS leave directly.
+- **VPN proxy** — traffic goes **through the tunnel**: another computer connects to it and
+  exits through your VPN. Runs from a **separate copy** of the helper in `%APPDATA%`
+  (split-tunnel excludes by exe path — otherwise both would be excluded).
 
-**Настройки у каждого** (Settings → Connection → Local proxies):
-- **Вкл/выкл** (у direct — на лету добавляет/убирает исключение из VPN).
-- **Тип**: **SOCKS5** (remote DNS, по умолчанию) / **HTTP CONNECT** / **HTTPS (TLS)** — канал
-  клиент→прокси шифруется; самоподписанный сертификат генерируется автоматически при первом
-  старте, кнопка экспорта `.cer` (доверить на клиентах). См. `README_certs.md` / `README_certs_RU.md`.
-- **Адрес привязки**: `127.0.0.1` (только этот ПК) / `0.0.0.0` (все интерфейсы — в адресе
-  показывается LAN-IP) / конкретный IP.
-- **Порт** (direct 8899, vpn 8900).
-- **Авторизация** — опционально: аноним **или** логин/пароль (HTTP `407` Basic + SOCKS5 RFC 1929).
-- **Allowlist клиентских IP** — через запятую; пусто = любой.
-- Адрес + статус + Copy; **Launch browser** (у direct); лог хостов (Open/Clear).
+**Settings for each** (Settings → Connection → Local proxies):
+- **On/off** (for direct — adds/removes the VPN exclusion live).
+- **Type**: **SOCKS5** (remote DNS, default) / **HTTP CONNECT** / **HTTPS (TLS)** — the
+  client→proxy channel is encrypted; a self-signed certificate is generated automatically on first
+  start, with an export-`.cer` button (trust it on the clients). See `README_certs.md` / `README_certs_RU.md`.
+- **Bind address**: `127.0.0.1` (this PC only) / `0.0.0.0` (all interfaces — the LAN IP is shown
+  in the address) / a specific IP.
+- **Port** (direct 8899, vpn 8900).
+- **Authentication** — optional: anonymous **or** login/password (HTTP `407` Basic + SOCKS5 RFC 1929).
+- **Client IP allowlist** — comma-separated; empty = anyone.
+- Address + status + Copy; **Launch browser** (direct only); host log (Open/Clear).
 
-Helper — Winsock + OpenSSL (для TLS), без окна, сам завершается вместе с клиентом (следит за PID
-родителя). Служба не менялась — исключение из VPN идёт через уже существующий IPC.
-Гранулярность «только определённые сайты через прокси» (PAC/расширение) — на стороне браузера.
+The helper is Winsock + OpenSSL (for TLS), has no window and exits together with the client (watches
+the parent PID). The service is unchanged — the VPN exclusion goes through the existing IPC.
+"Only certain sites through the proxy" granularity (PAC/extension) is on the browser side.
 
-### 8. Улучшения системного трея
-- Иконка на Windows рисуется **полноцветной** (в оригинале — монохромная маска `setIsMask`, которую
-  легко потерять на панели).
-- Добавлен **tooltip** и повторный `show()` (переживает перезапуск Explorer/панели задач).
+Architecture with concrete code lines and diagrams: [`docs/proxy/ARCHITECTURE.md`](./docs/proxy/ARCHITECTURE.md).
 
----
-
-### 9. Process Recorder — таймлайн процессов
-(Settings → Connection → Process recorder.) По кнопке **Record apps** каждые N секунд
-(настраиваемо, с дробями — напр. `3.33`) снимает список **всех процессов** (WinAPI Toolhelp32):
-имя, PID, PPID, потоки, **полный путь**, **время запуска**. Помечает **NEW** (появился с прошлого
-снимка) и **EXITED** (завершился — с **длительностью работы**). Клик по строке раскрывает детали +
-**Copy path**. **Ползунок времени** отматывает историю (LIVE / перемотка), фильтр по имени/пути/PID,
-переключатель «только новые». История — до 900 снимков. Удобно, чтобы увидеть, что именно
-запускается (например, какие exe добавить в split-tunnel).
+### 8. System tray improvements
+- The Windows icon is drawn **in full colour** (upstream uses a monochrome `setIsMask` mask that
+  is easy to lose on the taskbar).
+- Added a **tooltip** and a repeated `show()` (survives an Explorer/taskbar restart).
 
 ---
 
-## Что НЕ вошло (осознанные ограничения)
-- **App split tunneling «только выбранные через VPN» (include-режим) на Windows** — не реализуемо
-  с текущим драйвером Mullvad (он умеет только исключать приложения из туннеля). На Windows остаётся
-  режим «исключить». Для адресов (site-based) include-режим работает штатно.
-- **Лимит/backoff числа реконнектов** — не добавлен (кроме паузы при зависании реконнект повторяется
-  каждый интервал, пока связь не вернётся).
+### 9. Process Recorder — a timeline of processes
+(Settings → Connection → Process recorder.) With **Record apps** pressed, every N seconds
+(configurable, fractions allowed — e.g. `3.33`) it snapshots the list of **all processes** (WinAPI Toolhelp32):
+name, PID, PPID, threads, **full path**, **start time**. Marks **NEW** (appeared since the previous
+snapshot) and **EXITED** (finished — with its **run time**). Clicking a row expands the details +
+**Copy path**. The **time slider** scrubs through history (LIVE / rewind), filter by name/path/PID,
+"only new" toggle. History — up to 900 snapshots. Handy to see what exactly gets launched
+(e.g. which exes to add to split-tunnel).
 
 ---
 
-## Изменённые и добавленные файлы
+## What is NOT included (deliberate limits)
+- **App split tunneling "only selected apps through the VPN" (include mode) on Windows** — not
+  feasible with the current Mullvad driver (it can only exclude apps from the tunnel). Windows keeps
+  the "exclude" mode. For addresses (site-based) include mode works as upstream.
+- **Reconnect count limit/backoff** — not added (apart from the stuck pause, the reconnect repeats
+  every interval until the link is back).
 
-**Новые:**
-- `client/ui/controllers/reconnectController.{h,cpp}` — watchdog, тесты хостов, событийный лог, восстановление при зависании.
-- `client/ui/controllers/directProxyController.{h,cpp}` — владеет двумя `ProxyInstance` (direct / vpn).
-- `client/ui/controllers/proxyInstance.{h,cpp}` — один прокси: процесс + настройки (bind, port, auth, allowlist, log, TLS-сертификат).
+---
+
+## Changed and added files
+
+**New:**
+- `client/ui/controllers/reconnectController.{h,cpp}` — watchdog, host tests, event log, stuck recovery.
+- `client/ui/controllers/directProxyController.{h,cpp}` — owns two `ProxyInstance`s (direct / vpn).
+- `client/ui/controllers/proxyInstance.{h,cpp}` — one proxy: process + settings (bind, port, auth, allowlist, log, TLS certificate).
 - `client/ui/controllers/processRecorderController.{h,cpp}` — Process Recorder.
-- `client/ui/qml/Pages2/PageSettingsReconnect.qml`, `PageSettingsDirectProxy.qml`, `PageSettingsProcessRecorder.qml` — страницы настроек.
-- `directproxy/main.cpp`, `directproxy/CMakeLists.txt` — helper-прокси (Winsock + OpenSSL: SOCKS5 / HTTP / HTTPS, логин/пароль, allowlist).
-- `README_certs.md`, `README_certs_RU.md` — сертификаты HTTPS-прокси; `WORKFLOW.md` — сборка / установщики / мерж / релиз.
+- `client/ui/qml/Pages2/PageSettingsReconnect.qml`, `PageSettingsDirectProxy.qml`, `PageSettingsProcessRecorder.qml` — settings pages.
+- `directproxy/main.cpp`, `directproxy/CMakeLists.txt` — the proxy helper (Winsock + OpenSSL: SOCKS5 / HTTP / HTTPS, login/password, allowlist).
+- `README_certs.md`, `README_certs_RU.md` — HTTPS-proxy certificates; `WORKFLOW.md` — build / installers / merge / release; `docs/reconnect/`, `docs/proxy/` — guides; `HISTORY.md`; `index.html`, `index_ru.html` — landing pages; `docs/*.mymind` — mind maps.
 
-**Изменённые:**
-- `client/core/repositories/secureAppSettingsRepository.{h,cpp}` — настройки `Conf/reconnect*`, `Conf/proxy/<instance>/*`.
+**Changed:**
+- `client/core/repositories/secureAppSettingsRepository.{h,cpp}` — `Conf/reconnect*`, `Conf/proxy/<instance>/*` settings.
 - `client/core/controllers/connectionController.{h,cpp}` — `reapplySplitTunneling()`.
-- `client/core/controllers/coreController.{h,cpp}` — регистрация контроллеров Reconnect / DirectProxy / ProcessRecorder.
-- `client/vpnConnection.{h,cpp}` — `reapplySplitTunneling()`, исключение direct-helper'а из VPN.
-- `client/ui/controllers/appSplitTunnelingUiController.{h,cpp}` — переприменение split-tunnel при изменении списка.
-- `client/ui/controllers/qml/pageController.h` — новые `PageEnum`.
-- `client/ui/qml/Pages2/PageHome.qml` — индикаторы; `PageSettingsConnection.qml` — ссылки на страницы;
-  `PageSettingsAppSplitTunneling.qml`, `PageSettingsSplitTunneling.qml` — доступ при активном VPN;
-  `client/ui/utils/systemTrayNotificationHandler.cpp` — трей; `client/ui/qml/qml.qrc`.
-- `CMakeLists.txt` — `add_subdirectory(directproxy)`, версия.
+- `client/core/controllers/coreController.{h,cpp}` — registration of the Reconnect / DirectProxy / ProcessRecorder controllers.
+- `client/vpnConnection.{h,cpp}` — `reapplySplitTunneling()`, exclusion of the direct helper from the VPN.
+- `client/ui/controllers/appSplitTunnelingUiController.{h,cpp}` — re-applying split-tunnel on list changes.
+- `client/ui/controllers/qml/pageController.h` — new `PageEnum`s.
+- `client/ui/qml/Pages2/PageHome.qml` — indicators; `PageSettingsConnection.qml` — links to the pages;
+  `PageSettingsAppSplitTunneling.qml`, `PageSettingsSplitTunneling.qml` — access while the VPN is up;
+  `client/ui/utils/systemTrayNotificationHandler.cpp` — tray; `client/ui/qml/qml.qrc`.
+- `CMakeLists.txt` — `add_subdirectory(directproxy)`, version; `cmake/CPack.cmake` — package name `AmneziaVPN_Reconnect_*`.
 
 ---
 
-## Сборка (Windows)
-Требуется Qt 6.10+ (с модулями Qt5Compat и QtRemoteObjects), MSVC (VS 2022+), CMake, Conan.
+## Building (Windows)
+Requires Qt 6.10+ (with the Qt5Compat and QtRemoteObjects modules), MSVC (VS 2022+), CMake, Conan.
 ```
-cmake -S . -B deploy/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=<путь к Qt kit>
+cmake -S . -B deploy/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=<path to the Qt kit>
 cmake --build deploy/build
 ```
-- После сборки Qt-DLL раскладываются рядом с exe через `windeployqt`; helper `amnezia-direct-proxy.exe`
-  собирается в ту же папку и входит в установщик.
-- Установщик (IFW): `cpack -G IFW -D QTIFWDIR=<путь к QtInstallerFramework>`; для подписи задать
-  переменную окружения `SIGNTOOL_SUBJECT_NAME` (подпишутся все бинарники и сам установщик).
+- After the build the Qt DLLs are placed next to the exe by `windeployqt`; the helper `amnezia-direct-proxy.exe`
+  is built into the same folder and is part of the installer.
+- Installer (IFW): `cpack -G IFW -D QTIFWDIR=<path to QtInstallerFramework>`; to sign, set the
+  `SIGNTOOL_SUBJECT_NAME` environment variable (all binaries and the installer itself get signed).
+  Details — [`WORKFLOW.md`](./WORKFLOW.md).
