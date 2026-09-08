@@ -21,7 +21,7 @@
         ] },
         { t: '🔀 Local proxies (two)', c: '#2980b9', n: 'Settings → Local proxies. One helper exe, two instances. SOCKS5 / HTTP / HTTPS(TLS).', u: GH + 'docs/proxy/ARCHITECTURE.md', k: [
           { t: 'Direct — bypasses VPN (real IP)', n: 'matchtv.ru from Russia; "two browser windows — two IPs". Default 127.0.0.1:8899.' },
-          { t: 'VPN — through the tunnel', n: 'Another PC/phone on the LAN uses your VPN exit. Default 0.0.0.0:8900.' },
+          { t: 'VPN — through the tunnel', n: 'Another PC/phone on the LAN uses your VPN exit. Default 0.0.0.0:8900. Recommended type: HTTP (CONNECT) — accepted by every system proxy setting; restrict with the IP allowlist / password.' },
           { t: 'Why Direct bypasses: exclusion by exe path', n: 'vpnConnection.cpp adds amnezia-direct-proxy.exe to the split-tunnel exclude list; the VPN instance runs a copy from %APPDATA% (different path → not excluded).', u: GH + 'docs/proxy/ARCHITECTURE.md#3-why-the-direct-proxy-bypasses-the-vpn' },
           { t: 'HTTPS (TLS): self-signed cert, export .cer', n: 'Trust it on the client — see README_certs.md.', u: GH + 'README_certs.md' },
           { t: 'Login/password · IP allowlist · bind address', n: 'HTTP 407 Basic + SOCKS5 RFC 1929; unlisted IPs are dropped before any byte.' }
@@ -64,7 +64,7 @@
         ] },
         { t: '🔀 Локальные прокси (два)', c: '#2980b9', n: 'Settings → Local proxies. Один helper-exe, два инстанса. SOCKS5 / HTTP / HTTPS(TLS).', u: GH + 'docs/proxy/ARCHITECTURE_RU.md', k: [
           { t: 'Direct — мимо VPN (реальный IP)', n: 'matchtv.ru из РФ; «два окна браузера — два IP». По умолч. 127.0.0.1:8899.' },
-          { t: 'VPN — через туннель', n: 'Другой ПК/телефон в локалке выходит через ваш VPN. По умолч. 0.0.0.0:8900.' },
+          { t: 'VPN — через туннель', n: 'Другой ПК/телефон в локалке выходит через ваш VPN. По умолч. 0.0.0.0:8900. Рекомендуемый тип — HTTP (CONNECT): его принимают любые системные настройки прокси; ограничивайте списком разрешённых IP / паролем.' },
           { t: 'Почему Direct обходит: исключение по пути exe', n: 'vpnConnection.cpp добавляет amnezia-direct-proxy.exe в список исключений split-tunnel; VPN-инстанс запускает копию из %APPDATA% (другой путь → не исключён).', u: GH + 'docs/proxy/ARCHITECTURE_RU.md#3-почему-direct-прокси-обходит-vpn' },
           { t: 'HTTPS (TLS): самоподписанный сертификат, экспорт .cer', n: 'Доверить на клиенте — см. README_certs_RU.md.', u: GH + 'README_certs_RU.md' },
           { t: 'Логин/пароль · allowlist IP · адрес привязки', n: 'HTTP 407 Basic + SOCKS5 RFC 1929; чужие IP отбрасываются до первого байта.' }

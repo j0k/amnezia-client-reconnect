@@ -289,6 +289,7 @@ const unsigned char resp[2] = {0x01, static_cast<unsigned char>(ok ? 0x00 : 0x01
 - ✅ Обход работает только при поднятом VPN на Windows (механизм исключения — драйвер); без VPN это просто локальный прокси.
 - ⚠️ *Системные* настройки прокси Windows не умеют схему `https://` — используйте Chrome `--proxy-server=https://…`, Firefox или PAC (см. README по сертификатам).
 - ⚠️ Привязка **Direct**-инстанса к `0.0.0.0` открывает ваш реальный IP всей локальной сети — включайте allowlist и пароль.
+- 💡 **VPN**-инстанс, которым делитесь с другими устройствами, запускайте как **HTTP (CONNECT)**: именно его принимают системные настройки прокси Windows/Android/iOS и любой браузер; SOCKS5 нужна поддержка в приложении, а тип HTTPS требует самоподписанный сертификат на каждом клиенте (и системный прокси Windows его вовсе не умеет). Ограничивайте клиентов allowlist'ом и/или паролем.
 - ⚠️ macOS/Linux: helper и исключение — только `Q_OS_WIN` ([`vpnConnection.cpp:516`](../../client/vpnConnection.cpp#L516), `directproxy` подключается через `if(WIN32) add_subdirectory(directproxy)` в корневом [`CMakeLists.txt`](../../CMakeLists.txt)).
 
 ---

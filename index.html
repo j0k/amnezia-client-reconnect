@@ -117,6 +117,17 @@
   </div>
 </div>
 
+<h2>🔀 VPN proxy — share your VPN exit with another PC or phone</h2>
+<p>The second local proxy (<em>Settings → Local proxies → VPN proxy — through the tunnel</em>) listens on your LAN and pushes everything it receives <strong>into the VPN tunnel</strong>, so another computer, a phone or a TV on the same network exits through your VPN server without installing anything.</p>
+<ol>
+  <li>Turn it on, set <strong>Bind address</strong> to <code>0.0.0.0</code> (all interfaces) — the home-screen indicator then shows the address to use, e.g. <code>http://192.168.1.10:8900</code>.</li>
+  <li><strong>Recommended type: HTTP (CONNECT).</strong> It is the one every client understands: Windows <em>Settings → Network → Proxy</em>, Android/iOS Wi-Fi proxy settings, browsers, <code>curl</code>. SOCKS5 works only in apps that support it explicitly, and the HTTPS (TLS) type needs the self-signed certificate imported on <em>every</em> client and is not accepted by Windows system proxy settings at all. Inside your own LAN the extra TLS layer buys little — use HTTP unless the network itself is untrusted.</li>
+  <li>Restrict who may connect: <strong>Allowed client IPs</strong> (e.g. <code>192.168.1.23, 192.168.1.24</code>) and/or a <strong>login/password</strong>. An unlisted IP is dropped before a single byte is exchanged.</li>
+  <li>On the other device: proxy host = your LAN IP, port = <code>8900</code>. Check: <code>curl -x http://192.168.1.10:8900 https://api.ipify.org</code> must print the VPN server's IP.</li>
+  <li>Switch on <strong>Log requested hosts</strong> to see who asked for what: <code>[time] NEW  192.168.1.23 -&gt; chat.qwen.ai:443</code>.</li>
+</ol>
+<p class="hint">The Windows firewall must allow inbound TCP 8900 for <code>amnezia-direct-proxy-vpn.exe</code> (Windows asks on first start). Details and code: <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/docs/proxy/ARCHITECTURE.md">docs/proxy/ARCHITECTURE.md</a>.</p>
+
 <h2>🧠 Interactive mind map</h2>
 <p class="hint" style="margin-bottom:12px">Click a branch to expand it, hover for details, ↗ opens the document. The same map for <a href="https://juri-konoplev.pro/my-mind/">My Mind</a>: <a href="docs/vpn-amnezia-reconnect_en.mymind">EN</a> / <a href="docs/vpn-amnezia-reconnect_ru.mymind">RU</a>.</p>
 <div id="mindmap"></div>

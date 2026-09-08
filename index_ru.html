@@ -117,6 +117,17 @@
   </div>
 </div>
 
+<h2>🔀 VPN-прокси — поделиться VPN с другим ПК или телефоном</h2>
+<p>Второй локальный прокси (<em>Settings → Local proxies → VPN proxy — through the tunnel</em>) слушает в локальной сети и всё, что получает, отправляет <strong>внутрь VPN-туннеля</strong>: другой компьютер, телефон или телевизор в той же сети выходит через ваш VPN-сервер, ничего не устанавливая.</p>
+<ol>
+  <li>Включите его, в <strong>Bind address</strong> поставьте <code>0.0.0.0</code> (все интерфейсы) — индикатор на главном экране покажет адрес для подключения, например <code>http://192.168.1.10:8900</code>.</li>
+  <li><strong>Рекомендуемый тип — HTTP (CONNECT).</strong> Его понимают все клиенты: Windows <em>Параметры → Сеть → Прокси</em>, настройки Wi-Fi в Android/iOS, браузеры, <code>curl</code>. SOCKS5 работает только в программах, которые его явно поддерживают, а тип HTTPS (TLS) требует импортировать самоподписанный сертификат на <em>каждом</em> клиенте и вовсе не принимается системными настройками прокси Windows. Внутри своей локальной сети дополнительный TLS-слой почти ничего не даёт — используйте HTTP, если только самой сети не доверяете.</li>
+  <li>Ограничьте круг подключающихся: <strong>Allowed client IPs</strong> (например <code>192.168.1.23, 192.168.1.24</code>) и/или <strong>логин/пароль</strong>. Чужой IP отбрасывается до первого байта.</li>
+  <li>На другом устройстве: хост прокси = ваш LAN-IP, порт = <code>8900</code>. Проверка: <code>curl -x http://192.168.1.10:8900 https://api.ipify.org</code> должен напечатать IP VPN-сервера.</li>
+  <li>Включите <strong>Log requested hosts</strong>, чтобы видеть, кто куда обращался: <code>[время] NEW  192.168.1.23 -&gt; chat.qwen.ai:443</code>.</li>
+</ol>
+<p class="hint">Брандмауэр Windows должен разрешить входящий TCP 8900 для <code>amnezia-direct-proxy-vpn.exe</code> (Windows спросит при первом старте). Подробности и код: <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/docs/proxy/ARCHITECTURE_RU.md">docs/proxy/ARCHITECTURE_RU.md</a>.</p>
+
 <h2>🧠 Интерактивный майндмап</h2>
 <p class="hint" style="margin-bottom:12px">Клик по ветке раскрывает её, наведение показывает детали, ↗ открывает документ. Та же карта для <a href="https://juri-konoplev.pro/my-mind/">My Mind</a>: <a href="docs/vpn-amnezia-reconnect_ru.mymind">RU</a> / <a href="docs/vpn-amnezia-reconnect_en.mymind">EN</a>.</p>
 <div id="mindmap"></div>

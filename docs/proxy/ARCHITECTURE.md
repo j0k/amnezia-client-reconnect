@@ -289,6 +289,7 @@ const unsigned char resp[2] = {0x01, static_cast<unsigned char>(ok ? 0x00 : 0x01
 - ✅ Works only while a VPN is up on Windows (the driver is the exclusion mechanism); without a VPN it is simply a local proxy.
 - ⚠️ Windows *system* proxy settings cannot use an `https://` proxy scheme — use Chrome `--proxy-server=https://…`, Firefox, or a PAC (see the certs README).
 - ⚠️ Binding the **Direct** instance to `0.0.0.0` exposes your real IP to the LAN — use the allowlist and a password.
+- 💡 For the **VPN** instance shared with other devices, run it as **HTTP (CONNECT)**: it is what Windows/Android/iOS system proxy settings and every browser accept; SOCKS5 needs app support, and the HTTPS type needs the self-signed certificate on every client (and Windows system proxy cannot use it at all). Restrict clients with the allowlist and/or a password instead.
 - ⚠️ macOS/Linux: the helper and the exclusion are `Q_OS_WIN`-only ([`vpnConnection.cpp:516`](../../client/vpnConnection.cpp#L516), `directproxy` is added by `if(WIN32) add_subdirectory(directproxy)` in the root [`CMakeLists.txt`](../../CMakeLists.txt)).
 
 ---
