@@ -13,6 +13,7 @@
 > The VPN service and drivers are **unchanged** — everything talks to the stock service. Signed Windows installers (`.exe` / `.msi`) are on the [Releases](https://github.com/j0k/amnezia-client-reconnect/releases) page.
 >
 > 📄 [Full list of differences](./DIFFERENCE.md) · 🛠️ [Build & release workflow](./WORKFLOW.md) · 🔐 HTTPS-proxy certificates: [EN](./README_certs.md) / [RU](./README_certs_RU.md)
+> 📚 Docs: 🔁 Auto-reconnect setup & which hosts to ping — [EN](./docs/reconnect/SETUP.md) / [RU](./docs/reconnect/SETUP_RU.md) · 🔀 Local proxies architecture (code + diagrams) — [EN](./docs/proxy/ARCHITECTURE.md) / [RU](./docs/proxy/ARCHITECTURE_RU.md) · 📜 [History](./HISTORY.md)
 >
 > ### 🛑 Stopping AmneziaVPN and its services from the console
 > Useful before an update/rebuild (a running exe cannot be overwritten) or to shut everything down cleanly. Run PowerShell **as Administrator** for the service commands.
