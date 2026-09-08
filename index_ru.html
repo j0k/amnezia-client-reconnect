@@ -66,8 +66,8 @@
 <h2>🔐 Контрольные суммы файлов релиза</h2>
 <table>
   <tr><th>Файл</th><th>Размер</th><th>CRC32</th><th>SHA-256</th></tr>
-  <tr><td><code>AmneziaVPN_Reconnect_5.0.1.1_windows_x64.exe</code></td><td>107 392 152 Б</td><td><code>55F021D6</code></td><td><code style="word-break:break-all">4307ec78568e1bf49b88bcd581177a5f97ad1b0aabf7555b39f379265c2e543b</code></td></tr>
-  <tr><td><code>AmneziaVPN_Reconnect_5.0.1.1_windows_x64.msi</code></td><td>86 958 080 Б</td><td><code>BFF9F703</code></td><td><code style="word-break:break-all">8051dd51a3c0b957c4d79a57b4e01a9920b11ab79bde604c37b187a1dc65ddd7</code></td></tr>
+  <tr><td><code>AmneziaVPN_Reconnect_5.0.1.1_windows_x64.exe</code></td><td>107 369 600 Б</td><td><code>5B7F560F</code></td><td><code style="word-break:break-all">ded876437ca65c4eb86c546246293c1e25bcf8d887a19b5ded4c4837afd8c56b</code></td></tr>
+  <tr><td><code>AmneziaVPN_Reconnect_5.0.1.1_windows_x64.msi</code></td><td>86 941 696 Б</td><td><code>EC3B1F62</code></td><td><code style="word-break:break-all">1b0040acfc5e0e2fc3d48355e9a26258e5cd0835c9d37fefe11d505f972e8128</code></td></tr>
 </table>
 <p class="hint">Проверка в Windows: <code>certutil -hashfile &lt;файл&gt; SHA256</code>; CRC32 — например 7-Zip → <em>CRC SHA</em>, или <code>python -c "import zlib,sys;print('%08X'%(zlib.crc32(open(sys.argv[1],'rb').read())&amp;0xFFFFFFFF))" &lt;файл&gt;</code>. Те же SHA-256 лежат в <code>SHA256SUMS.txt</code> в релизе.</p>
 
