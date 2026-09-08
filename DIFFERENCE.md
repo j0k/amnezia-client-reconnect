@@ -17,6 +17,7 @@ All changes are **client-side only** (`client/`) plus one new standalone helper 
 - **HTTPS (TLS) proxy** — a third type: the client→proxy channel is encrypted; a self-signed certificate is generated automatically, with an export-`.cer` button. The helper now links OpenSSL. Instructions: `README_certs.md` / `README_certs_RU.md`.
 - Docs: `WORKFLOW.md` (build/installers/merge/release), `docs/reconnect/SETUP{,_RU}.md`, `docs/proxy/ARCHITECTURE{,_RU}.md`, `HISTORY.md`, landing pages `index.html` / `index_ru.html`.
 - Installers are now named `AmneziaVPN_Reconnect_<version>_windows_x64.{exe,msi}`.
+- Direct proxy: **Launch Firefox** and **Launch Yandex Browser** buttons next to Chrome / Edge (Firefox via a generated profile, see §7).
 
 ### Merge with upstream 5.0.1.1 (2026-08-17)
 - Official `dev` merged (51 commits, ~205 files): **AWG 3.0 / 3.1** support, OpenVPN fixes (crash on connect), XRay/VLESS/Telemt, split-tunnel (IP handling, subnet add), **IPC input validation**, captcha on updates, mobile/CI. The fork version is synced with upstream — **5.0.1.1**.
@@ -134,7 +135,13 @@ Two independent local proxies based on the helper exe `amnezia-direct-proxy.exe`
 - **Port** (direct 8899, vpn 8900).
 - **Authentication** — optional: anonymous **or** login/password (HTTP `407` Basic + SOCKS5 RFC 1929).
 - **Client IP allowlist** — comma-separated; empty = anyone.
-- Address + status + Copy; **Launch browser** (direct only); host log (Open/Clear).
+- Address + status + Copy; host log (Open/Clear).
+- **Launch a browser via this proxy** (direct only) — three buttons: **Chrome / Edge** and
+  **Yandex Browser** (Chromium: `--proxy-server=…` + a separate `--user-data-dir`, so the
+  window is independent of the already running browser) and **Firefox** (no proxy flag exists,
+  so a dedicated throw-away profile with `user.js` is generated — SOCKS5/HTTP prefs, or a PAC
+  `HTTPS 127.0.0.1:port` for the TLS type — and Firefox starts with `-no-remote -profile`;
+  `security.enterprise_roots.enabled` lets it trust the exported certificate from the Windows store).
 
 The helper is Winsock + OpenSSL (for TLS), has no window and exits together with the client (watches
 the parent PID). The service is unchanged — the VPN exclusion goes through the existing IPC.

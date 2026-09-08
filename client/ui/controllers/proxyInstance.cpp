@@ -462,13 +462,39 @@ QString ProxyInstance::findBrowser() const
     return {};
 }
 
-bool ProxyInstance::launchBrowser()
+QString ProxyInstance::findYandexBrowser() const
 {
-    if (!isRunning()) {
-        return false;
+    QStringList candidates;
+#if defined(Q_OS_WIN)
+    const QStringList hives { QStringLiteral("HKEY_CURRENT_USER"), QStringLiteral("HKEY_LOCAL_MACHINE") };
+    for (const QString &hive : hives) {
+        QSettings reg(hive + QStringLiteral("\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\browser.exe"),
+                      QSettings::NativeFormat);
+        const QString path = reg.value(QStringLiteral(".")).toString();
+        if (path.contains(QStringLiteral("Yandex"), Qt::CaseInsensitive)) {
+            candidates << path;
+        }
     }
-    const QString browser = findBrowser();
-    if (browser.isEmpty()) {
+    const QStringList roots { qEnvironmentVariable("LOCALAPPDATA"),
+                              qEnvironmentVariable("ProgramFiles"),
+                              qEnvironmentVariable("ProgramFiles(x86)") };
+    for (const QString &root : roots) {
+        if (!root.isEmpty()) {
+            candidates << root + QStringLiteral("/Yandex/YandexBrowser/Application/browser.exe");
+        }
+    }
+#endif
+    for (const QString &c : candidates) {
+        if (!c.isEmpty() && QFileInfo::exists(c)) {
+            return c;
+        }
+    }
+    return {};
+}
+
+bool ProxyInstance::launchChromium(const QString &exe, const QString &profileTag)
+{
+    if (!isRunning() || exe.isEmpty()) {
         return false;
     }
     // Point the browser at the local endpoint (127.0.0.1) regardless of bind host.
@@ -477,10 +503,121 @@ bool ProxyInstance::launchBrowser()
                          : (t == Http)  ? QStringLiteral("http")
                                         : QStringLiteral("socks5");
     const QString localAddr = QStringLiteral("%1://127.0.0.1:%2").arg(scheme).arg(port());
-    const QString userDataDir = QDir::tempPath() + QStringLiteral("/amnezia-proxy-browser-") + m_instanceId;
+    // Separate user-data-dir: the flag is per process, an already running instance of the
+    // same browser would otherwise just open a new window without the proxy.
+    const QString userDataDir = QDir::tempPath() + QStringLiteral("/amnezia-proxy-") + profileTag + "-" + m_instanceId;
     const QStringList args {
         QStringLiteral("--proxy-server=") + localAddr,
         QStringLiteral("--user-data-dir=") + userDataDir
     };
-    return QProcess::startDetached(browser, args);
+    return QProcess::startDetached(exe, args);
+}
+
+bool ProxyInstance::launchBrowser()
+{
+    return launchChromium(findBrowser(), QStringLiteral("browser"));
+}
+
+bool ProxyInstance::launchYandexBrowser()
+{
+    return launchChromium(findYandexBrowser(), QStringLiteral("yandex"));
+}
+
+QString ProxyInstance::findFirefox() const
+{
+    QStringList candidates;
+#if defined(Q_OS_WIN)
+    const QStringList hives { QStringLiteral("HKEY_CURRENT_USER"), QStringLiteral("HKEY_LOCAL_MACHINE") };
+    for (const QString &hive : hives) {
+        QSettings reg(hive + QStringLiteral("\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\firefox.exe"),
+                      QSettings::NativeFormat);
+        const QString path = reg.value(QStringLiteral(".")).toString();
+        if (!path.isEmpty()) {
+            candidates << path;
+        }
+    }
+    const QStringList roots { qEnvironmentVariable("ProgramFiles"),
+                              qEnvironmentVariable("ProgramFiles(x86)"),
+                              qEnvironmentVariable("LOCALAPPDATA") };
+    for (const QString &root : roots) {
+        if (!root.isEmpty()) {
+            candidates << root + QStringLiteral("/Mozilla Firefox/firefox.exe");
+        }
+    }
+#endif
+    for (const QString &c : candidates) {
+        if (!c.isEmpty() && QFileInfo::exists(c)) {
+            return c;
+        }
+    }
+    return {};
+}
+
+bool ProxyInstance::launchFirefox()
+{
+    if (!isRunning()) {
+        return false;
+    }
+    const QString firefox = findFirefox();
+    if (firefox.isEmpty()) {
+        return false;
+    }
+
+    // Firefox has no --proxy-server flag; proxy settings live in the profile. Use a
+    // dedicated throw-away profile so the user's normal Firefox is untouched, and
+    // regenerate user.js on every launch so it follows the current proxy settings.
+    const QString profileDir = QDir::tempPath() + QStringLiteral("/amnezia-proxy-firefox-") + m_instanceId;
+    if (!QDir().mkpath(profileDir)) {
+        return false;
+    }
+
+    const int t = proxyType();
+    QStringList prefs;
+    prefs << QStringLiteral("user_pref(\"network.proxy.no_proxies_on\", \"\");")
+          << QStringLiteral("user_pref(\"network.proxy.socks_remote_dns\", true);")
+          // Trust certificates from the Windows store (e.g. the exported .cer of the HTTPS proxy).
+          << QStringLiteral("user_pref(\"security.enterprise_roots.enabled\", true);")
+          << QStringLiteral("user_pref(\"browser.shell.checkDefaultBrowser\", false);")
+          << QStringLiteral("user_pref(\"datareporting.policy.dataSubmissionPolicyBypassNotification\", true);")
+          << QStringLiteral("user_pref(\"browser.aboutwelcome.enabled\", false);");
+
+    if (t == Https) {
+        // A TLS-to-proxy connection is only expressible through a PAC ("HTTPS host:port").
+        const QString pacPath = profileDir + QStringLiteral("/proxy.pac");
+        QFile pac(pacPath);
+        if (!pac.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+            return false;
+        }
+        pac.write(QStringLiteral("function FindProxyForURL(url, host) { return \"HTTPS 127.0.0.1:%1\"; }\n")
+                      .arg(port()).toUtf8());
+        pac.close();
+        prefs << QStringLiteral("user_pref(\"network.proxy.type\", 2);")
+              << QStringLiteral("user_pref(\"network.proxy.autoconfig_url\", \"%1\");")
+                     .arg(QUrl::fromLocalFile(pacPath).toString());
+    } else if (t == Http) {
+        prefs << QStringLiteral("user_pref(\"network.proxy.type\", 1);")
+              << QStringLiteral("user_pref(\"network.proxy.http\", \"127.0.0.1\");")
+              << QStringLiteral("user_pref(\"network.proxy.http_port\", %1);").arg(port())
+              << QStringLiteral("user_pref(\"network.proxy.ssl\", \"127.0.0.1\");")
+              << QStringLiteral("user_pref(\"network.proxy.ssl_port\", %1);").arg(port())
+              << QStringLiteral("user_pref(\"network.proxy.share_proxy_settings\", true);");
+    } else {
+        prefs << QStringLiteral("user_pref(\"network.proxy.type\", 1);")
+              << QStringLiteral("user_pref(\"network.proxy.socks\", \"127.0.0.1\");")
+              << QStringLiteral("user_pref(\"network.proxy.socks_port\", %1);").arg(port())
+              << QStringLiteral("user_pref(\"network.proxy.socks_version\", 5);");
+    }
+
+    QFile userJs(profileDir + QStringLiteral("/user.js"));
+    if (!userJs.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        return false;
+    }
+    userJs.write(prefs.join('\n').toUtf8() + "\n");
+    userJs.close();
+
+    const QStringList args {
+        QStringLiteral("-no-remote"),
+        QStringLiteral("-profile"), QDir::toNativeSeparators(profileDir)
+    };
+    return QProcess::startDetached(firefox, args);
 }

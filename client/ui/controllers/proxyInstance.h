@@ -88,7 +88,11 @@ public:
 public slots:
     void openLogFile();
     void clearLog();
-    bool launchBrowser();
+    bool launchBrowser();       // Chrome / Edge
+    bool launchYandexBrowser(); // Chromium-based too: same --proxy-server flag
+    // Firefox has no proxy command-line flag: a dedicated profile with user.js (and a PAC
+    // for the HTTPS type) is generated and Firefox is started with it.
+    bool launchFirefox();
     // Copies the TLS certificate to the Desktop so it can be trusted on client machines.
     // Returns the exported path, or an empty string on failure.
     QString exportCertificate();
@@ -109,6 +113,9 @@ private:
     bool ensureVpnExeCopy() const; // for the via-VPN instance: copy helper to a distinct path
     QString displayHost() const;
     QString findBrowser() const;
+    QString findFirefox() const;
+    QString findYandexBrowser() const;
+    bool launchChromium(const QString &exe, const QString &profileTag);
     QString keyPath() const;
     QString buildSan() const;
 

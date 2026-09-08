@@ -17,6 +17,7 @@
 - **HTTPS (TLS) прокси** — третий тип: канал клиент→прокси шифруется; самоподписанный сертификат генерируется автоматически, кнопка экспорта `.cer`. Helper теперь линкуется с OpenSSL. Инструкции: `README_certs.md` / `README_certs_RU.md`.
 - Docs: `WORKFLOW.md` (сборка/установщики/мерж/релиз), `docs/reconnect/SETUP{,_RU}.md`, `docs/proxy/ARCHITECTURE{,_RU}.md`, `HISTORY.md`, лендинги `index.html` / `index_ru.html`.
 - Установщики теперь называются `AmneziaVPN_Reconnect_<версия>_windows_x64.{exe,msi}`.
+- Direct proxy: кнопки **Launch Firefox** и **Launch Yandex Browser** рядом с Chrome / Edge (Firefox — через сгенерированный профиль, см. §7).
 
 ### Слияние с upstream 5.0.1.1 (2026-08-17)
 - Влит официальный `dev` (51 коммит, ~205 файлов): поддержка **AWG 3.0 / 3.1**, фиксы OpenVPN (креш при подключении), XRay/VLESS/Telemt, split-tunnel (обработка IP, добавление подсети), **IPC input validation**, captcha на обновлениях, мобильные/CI. Версия форка синхронизирована с upstream — **5.0.1.1**.
@@ -134,7 +135,13 @@ watchdog это обнаруживает и восстанавливается �
 - **Порт** (direct 8899, vpn 8900).
 - **Авторизация** — опционально: аноним **или** логин/пароль (HTTP `407` Basic + SOCKS5 RFC 1929).
 - **Allowlist клиентских IP** — через запятую; пусто = любой.
-- Адрес + статус + Copy; **Launch browser** (у direct); лог хостов (Open/Clear).
+- Адрес + статус + Copy; лог хостов (Open/Clear).
+- **Запуск браузера через этот прокси** (у direct) — три кнопки: **Chrome / Edge** и
+  **Yandex Browser** (Chromium: `--proxy-server=…` + отдельный `--user-data-dir`, чтобы окно не
+  зависело от уже запущенного браузера) и **Firefox** (флага прокси у него нет, поэтому создаётся
+  отдельный временный профиль с `user.js` — настройки SOCKS5/HTTP или PAC `HTTPS 127.0.0.1:port`
+  для TLS-типа — и Firefox стартует с `-no-remote -profile`; `security.enterprise_roots.enabled`
+  позволяет ему доверять экспортированному сертификату из хранилища Windows).
 
 Helper — Winsock + OpenSSL (для TLS), без окна, сам завершается вместе с клиентом (следит за PID
 родителя). Служба не менялась — исключение из VPN идёт через уже существующий IPC.

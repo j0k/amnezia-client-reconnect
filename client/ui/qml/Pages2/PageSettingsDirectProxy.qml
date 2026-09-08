@@ -249,7 +249,7 @@ PageType {
             Layout.leftMargin: 16
             Layout.rightMargin: 16
 
-            text: qsTr("Launch browser via this proxy")
+            text: qsTr("Launch Chrome / Edge via this proxy")
 
             clickedFunc: function() {
                 if (!section.proxy.running) {
@@ -260,6 +260,50 @@ PageType {
                     PageController.showNotificationMessage(qsTr("Browser launched via proxy"))
                 } else {
                     PageController.showNotificationMessage(qsTr("Could not find Chrome or Edge"))
+                }
+            }
+        }
+
+        BasicButtonType {
+            visible: !section.proxy.viaVpn
+            Layout.fillWidth: true
+            Layout.topMargin: 8
+            Layout.leftMargin: 16
+            Layout.rightMargin: 16
+
+            text: qsTr("Launch Firefox via this proxy")
+
+            clickedFunc: function() {
+                if (!section.proxy.running) {
+                    PageController.showNotificationMessage(qsTr("Enable the proxy first"))
+                    return
+                }
+                if (section.proxy.launchFirefox()) {
+                    PageController.showNotificationMessage(qsTr("Firefox launched via proxy (separate profile)"))
+                } else {
+                    PageController.showNotificationMessage(qsTr("Could not find Firefox"))
+                }
+            }
+        }
+
+        BasicButtonType {
+            visible: !section.proxy.viaVpn
+            Layout.fillWidth: true
+            Layout.topMargin: 8
+            Layout.leftMargin: 16
+            Layout.rightMargin: 16
+
+            text: qsTr("Launch Yandex Browser via this proxy")
+
+            clickedFunc: function() {
+                if (!section.proxy.running) {
+                    PageController.showNotificationMessage(qsTr("Enable the proxy first"))
+                    return
+                }
+                if (section.proxy.launchYandexBrowser()) {
+                    PageController.showNotificationMessage(qsTr("Yandex Browser launched via proxy"))
+                } else {
+                    PageController.showNotificationMessage(qsTr("Could not find Yandex Browser"))
                 }
             }
         }
