@@ -7,6 +7,7 @@
 > - 🔁 **Auto-reconnect watchdog** — pings your hosts and reconnects the VPN when the link is actually dead; recovers from reconnects stuck in *Connecting*; timestamped event log.
 > - ⚡ **Live app split-tunneling** — add/remove apps without reconnecting; editable while connected.
 > - 🌐 **Two local proxies** — one that *bypasses* the VPN (real IP for region-locked sites) and one that goes *through* it (share your VPN exit with another PC). Bind address, port, optional login/password, IP allowlist; **SOCKS5 / HTTP / HTTPS (TLS)** with an auto-generated certificate.
+>   A practical example: with the VPN on, the *bypass* proxy opens sites that are blocked *for foreign IPs* — e.g. **matchtv.ru** if you are in Russia — because they see your real IP. And it is simply pleasant: one browser window shows one IP, another window shows a different one. 😊
 > - 🎞️ **Process Recorder** — a timeline of running processes (NEW / EXITED with run time, full path, scrub back in time).
 >
 > The VPN service and drivers are **unchanged** — everything talks to the stock service. Signed Windows installers (`.exe` / `.msi`) are on the [Releases](https://github.com/j0k/amnezia-client-reconnect/releases) page.
