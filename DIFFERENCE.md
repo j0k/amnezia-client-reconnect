@@ -110,33 +110,46 @@ watchdog это обнаруживает и восстанавливается �
 просмотра/прокрутки** списка (в оригинале вся страница блокировалась). Редактирование адресов при
 подключении оставлено заблокированным — у сайтов применение идёт через маршруты, а не через драйвер.
 
-### 7. Direct proxy — локальный прокси в обход VPN
-Поднимает локальный прокси, чей трафик **идёт мимо VPN** (напрямую, реальный IP и DNS). Нужен для
-сайтов с **обратной гео-блокировкой** (например `matchtv.ru` — «недоступно в вашем регионе»):
-направляешь браузер на прокси → сайт видит твой реальный IP и работает, при этом VPN остаётся включён
-для остального.
+### 7. Локальные прокси — Direct (мимо VPN) и VPN (через туннель)
+Два независимых локальных прокси на базе helper-exe `amnezia-direct-proxy.exe`:
+- **Direct proxy** — трафик идёт **мимо VPN** (реальный IP и DNS). Для сайтов с обратной
+  гео-блокировкой (например `matchtv.ru`). Helper **исключается из VPN** через существующий
+  split-tunnel драйвер — и соединения, и DNS выходят напрямую.
+- **VPN proxy** — трафик идёт **через туннель**: другой компьютер подключается к нему и
+  выходит через твой VPN. Запускается из **отдельной копии** helper'а в `%APPDATA%`
+  (split-tunnel исключает по пути exe — иначе исключились бы оба).
 
-**Как устроено:** отдельный helper-exe `amnezia-direct-proxy.exe` **исключается из VPN** через уже
-существующий split-tunnel драйвер (его путь дописывается в список исключений), поэтому и соединения, и
-DNS этого процесса выходят напрямую. Это обходит проблемы адресного split-tunnel (маршруты, wildcard,
-rotating CDN IP, гео-DNS). Helper — на чистом Winsock (без Qt), без консольного окна, и **сам завершается
-при закрытии клиента** (следит за PID родителя — не оставляет «сирот»).
+**Настройки у каждого** (Settings → Connection → Local proxies):
+- **Вкл/выкл** (у direct — на лету добавляет/убирает исключение из VPN).
+- **Тип**: **SOCKS5** (remote DNS, по умолчанию) / **HTTP CONNECT** / **HTTPS (TLS)** — канал
+  клиент→прокси шифруется; самоподписанный сертификат генерируется автоматически при первом
+  старте, кнопка экспорта `.cer` (доверить на клиентах). См. `README_certs.md` / `README_certs_RU.md`.
+- **Адрес привязки**: `127.0.0.1` (только этот ПК) / `0.0.0.0` (все интерфейсы — в адресе
+  показывается LAN-IP) / конкретный IP.
+- **Порт** (direct 8899, vpn 8900).
+- **Авторизация** — опционально: аноним **или** логин/пароль (HTTP `407` Basic + SOCKS5 RFC 1929).
+- **Allowlist клиентских IP** — через запятую; пусто = любой.
+- Адрес + статус + Copy; **Launch browser** (у direct); лог хостов (Open/Clear).
 
-**Настройки** (Settings → Connection → Direct proxy):
-- **Вкл/выкл**; на лету добавляет/убирает исключение helper’а из VPN.
-- **Тип прокси**: **SOCKS5 (remote DNS)** по умолчанию / **HTTP CONNECT**.
-- **Порт** (по умолчанию 8899).
-- **Адрес** (`socks5://127.0.0.1:8899`) + кнопка **Copy**; индикатор running/stopped.
-- Готовый **пример команды** запуска Chrome через прокси + кнопка **Copy launch command**.
-- **Лог хостов** (тумблер + Open/Clear) — заодно инструмент обнаружения доменов сайта.
-
-Гранулярность «только определённые сайты через прокси» (PAC-файл/расширение) — на стороне браузера
-(в приложении пока не автоматизировано).
+Helper — Winsock + OpenSSL (для TLS), без окна, сам завершается вместе с клиентом (следит за PID
+родителя). Служба не менялась — исключение из VPN идёт через уже существующий IPC.
+Гранулярность «только определённые сайты через прокси» (PAC/расширение) — на стороне браузера.
 
 ### 8. Улучшения системного трея
 - Иконка на Windows рисуется **полноцветной** (в оригинале — монохромная маска `setIsMask`, которую
   легко потерять на панели).
 - Добавлен **tooltip** и повторный `show()` (переживает перезапуск Explorer/панели задач).
+
+---
+
+### 9. Process Recorder — таймлайн процессов
+(Settings → Connection → Process recorder.) По кнопке **Record apps** каждые N секунд
+(настраиваемо, с дробями — напр. `3.33`) снимает список **всех процессов** (WinAPI Toolhelp32):
+имя, PID, PPID, потоки, **полный путь**, **время запуска**. Помечает **NEW** (появился с прошлого
+снимка) и **EXITED** (завершился — с **длительностью работы**). Клик по строке раскрывает детали +
+**Copy path**. **Ползунок времени** отматывает историю (LIVE / перемотка), фильтр по имени/пути/PID,
+переключатель «только новые». История — до 900 снимков. Удобно, чтобы увидеть, что именно
+запускается (например, какие exe добавить в split-tunnel).
 
 ---
 
@@ -152,26 +165,25 @@ rotating CDN IP, гео-DNS). Helper — на чистом Winsock (без Qt), 
 ## Изменённые и добавленные файлы
 
 **Новые:**
-- `directproxy/main.cpp`, `directproxy/CMakeLists.txt` — helper-прокси `amnezia-direct-proxy.exe` (SOCKS5/HTTP, лог, parent-watch).
-- `client/ui/controllers/reconnectController.{h,cpp}` — watchdog, тесты хостов, лог, восстановление при зависании.
-- `client/ui/controllers/directProxyController.{h,cpp}` — жизненный цикл direct-proxy + свойства для QML.
-- `client/ui/qml/Pages2/PageSettingsReconnect.qml` — страница настроек Auto-reconnect.
-- `client/ui/qml/Pages2/PageSettingsDirectProxy.qml` — страница настроек Direct proxy.
+- `client/ui/controllers/reconnectController.{h,cpp}` — watchdog, тесты хостов, событийный лог, восстановление при зависании.
+- `client/ui/controllers/directProxyController.{h,cpp}` — владеет двумя `ProxyInstance` (direct / vpn).
+- `client/ui/controllers/proxyInstance.{h,cpp}` — один прокси: процесс + настройки (bind, port, auth, allowlist, log, TLS-сертификат).
+- `client/ui/controllers/processRecorderController.{h,cpp}` — Process Recorder.
+- `client/ui/qml/Pages2/PageSettingsReconnect.qml`, `PageSettingsDirectProxy.qml`, `PageSettingsProcessRecorder.qml` — страницы настроек.
+- `directproxy/main.cpp`, `directproxy/CMakeLists.txt` — helper-прокси (Winsock + OpenSSL: SOCKS5 / HTTP / HTTPS, логин/пароль, allowlist).
+- `README_certs.md`, `README_certs_RU.md` — сертификаты HTTPS-прокси; `WORKFLOW.md` — сборка / установщики / мерж / релиз.
 
 **Изменённые:**
-- `CMakeLists.txt` (корневой) — `add_subdirectory(directproxy)` (Windows).
-- `client/core/repositories/secureAppSettingsRepository.{h,cpp}` — настройки (`Conf/reconnect*`, `Conf/directProxy*`).
+- `client/core/repositories/secureAppSettingsRepository.{h,cpp}` — настройки `Conf/reconnect*`, `Conf/proxy/<instance>/*`.
 - `client/core/controllers/connectionController.{h,cpp}` — `reapplySplitTunneling()`.
-- `client/core/controllers/coreController.{h,cpp}` — регистрация `ReconnectController` и `DirectProxyController`.
-- `client/vpnConnection.{h,cpp}` — `reapplySplitTunneling()` + исключение helper’а direct-proxy из VPN.
-- `client/ui/controllers/appSplitTunnelingUiController.{h,cpp}` — переприменение при изменении списка приложений.
-- `client/ui/utils/systemTrayNotificationHandler.cpp` — полноцветная иконка трея, tooltip, re-show.
-- `client/ui/controllers/qml/pageController.h` — `PageEnum::PageSettingsReconnect`, `PageSettingsDirectProxy`.
-- `client/ui/qml/Pages2/PageHome.qml` — индикаторы Auto-reconnect / Direct proxy / Logs.
-- `client/ui/qml/Pages2/PageSettingsConnection.qml` — ссылки на страницы Auto-reconnect и Direct proxy.
-- `client/ui/qml/Pages2/PageSettingsAppSplitTunneling.qml` — разблокировка редактирования при активном VPN.
-- `client/ui/qml/Pages2/PageSettingsSplitTunneling.qml` — просмотр списка адресов при активном VPN.
-- `client/ui/qml/qml.qrc` — регистрация новых QML-страниц.
+- `client/core/controllers/coreController.{h,cpp}` — регистрация контроллеров Reconnect / DirectProxy / ProcessRecorder.
+- `client/vpnConnection.{h,cpp}` — `reapplySplitTunneling()`, исключение direct-helper'а из VPN.
+- `client/ui/controllers/appSplitTunnelingUiController.{h,cpp}` — переприменение split-tunnel при изменении списка.
+- `client/ui/controllers/qml/pageController.h` — новые `PageEnum`.
+- `client/ui/qml/Pages2/PageHome.qml` — индикаторы; `PageSettingsConnection.qml` — ссылки на страницы;
+  `PageSettingsAppSplitTunneling.qml`, `PageSettingsSplitTunneling.qml` — доступ при активном VPN;
+  `client/ui/utils/systemTrayNotificationHandler.cpp` — трей; `client/ui/qml/qml.qrc`.
+- `CMakeLists.txt` — `add_subdirectory(directproxy)`, версия.
 
 ---
 
