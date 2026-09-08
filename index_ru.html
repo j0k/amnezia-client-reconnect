@@ -60,6 +60,37 @@
 </div>
 <p class="hint">Устанавливается как <strong>AmneziaVPN</strong> (то же имя приложения и службы, что у апстрима) — установщик обновит официальный клиент, либо удалите его заранее. Исходники: <a href="https://github.com/j0k/amnezia-client-reconnect">github.com/j0k/amnezia-client-reconnect</a></p>
 
+<h2>🔐 Контрольные суммы файлов релиза</h2>
+<table>
+  <tr><th>Файл</th><th>Размер</th><th>CRC32</th><th>SHA-256</th></tr>
+  <tr><td><code>AmneziaVPN_Reconnect_5.0.1.1_windows_x64.exe</code></td><td>107 381 024 Б</td><td><code>B3085111</code></td><td><code style="word-break:break-all">6f3a674acca336f93b2347e111aaff9bfab0c33d6568b8723d2ee1fbb960f119</code></td></tr>
+  <tr><td><code>AmneziaVPN_Reconnect_5.0.1.1_windows_x64.msi</code></td><td>87 027 712 Б</td><td><code>4A900FD5</code></td><td><code style="word-break:break-all">15b26ceaaba046bd38a2c85961a734a3a07f063c59e402992752cea7f0bcdb0c</code></td></tr>
+</table>
+<p class="hint">Проверка в Windows: <code>certutil -hashfile &lt;файл&gt; SHA256</code>; CRC32 — например 7-Zip → <em>CRC SHA</em>, или <code>python -c "import zlib,sys;print('%08X'%(zlib.crc32(open(sys.argv[1],'rb').read())&amp;0xFFFFFFFF))" &lt;файл&gt;</code>. Те же SHA-256 лежат в <code>SHA256SUMS.txt</code> в релизе.</p>
+
+<h2>🔍 Чем отличается от официального клиента</h2>
+<ol>
+  <li><strong>Auto-reconnect watchdog</strong> — пинг хостов → авто-реконнект (интервал, all/any, random, статус, <em>Check now</em>).</li>
+  <li><strong>Test</strong> под каждым хостом (IP, потери, RTT).</li>
+  <li><strong>Восстановление при зависании реконнекта</strong> — прервать → пауза → повтор (timeout / pause в секундах).</li>
+  <li><strong>Индикаторы на главном</strong> — auto-reconnect / прокси / логи.</li>
+  <li><strong>Событийный лог</strong> — txt с таймстампами, 4 категории-чекбокса.</li>
+  <li><strong>Live split-tunnel приложений</strong> — без реконнекта, редактирование при активном VPN.</li>
+  <li><strong>Два локальных прокси</strong> — <em>Direct</em> (мимо VPN) + <em>VPN</em> (через туннель); у каждого bind-адрес, порт, опциональный логин/пароль, allowlist IP, лог; типы SOCKS5 / HTTP / <strong>HTTPS (TLS)</strong> с автосертификатом и экспортом.</li>
+  <li><strong>Трей</strong> — иконка цвета состояния (зелёный / серый / красный), видна на светлой панели, tooltip с состоянием.</li>
+  <li><strong>Process Recorder</strong> — таймлайн процессов (NEW / EXITED с длительностью, раскрытие, путь, ползунок).</li>
+</ol>
+<p>Документация: <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/DIFFERENCE_RU.md">DIFFERENCE</a>, <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/WORKFLOW.md">WORKFLOW</a>, README_certs <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/README_certs_RU.md">RU</a> / <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/README_certs.md">EN</a>.</p>
+<p><strong>Что сделано после этого (8 сентября 2026):</strong></p>
+<ul>
+  <li>Первый релиз на GitHub <code>v5.0.1.1-reconnect-proxy</code>; установщики переименованы в <code>AmneziaVPN_Reconnect_*</code>, оба подписаны.</li>
+  <li>Руководства с кликабельными ссылками на код: <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/docs/reconnect/SETUP_RU.md">docs/reconnect/SETUP</a> (какие хосты пинговать и зачем) и <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/docs/proxy/ARCHITECTURE_RU.md">docs/proxy/ARCHITECTURE</a> (как устроены прокси, с диаграммами); <code>DIFFERENCE.md</code> разделён на EN + RU; <code>HISTORY.md</code>.</li>
+  <li>Эти лендинги с интерактивным майндмапом (и файлы <code>.mymind</code> для My Mind).</li>
+  <li>Страница Direct-прокси: по строке на браузер — <strong>Chrome, Edge, Firefox, Yandex Browser</strong> — с <em>Launch</em>, <em>Copy</em> и готовой командой PowerShell (текст выделяется); для Firefox профиль генерируется автоматически.</li>
+  <li>Починена иконка трея — прежняя «полноцветная иконка» на деле была надписью 150×22 и выглядела пустым квадратом.</li>
+  <li>Проверка обновлений пропускается, если в сборке нет ключа API-шлюза Amnezia (больше нет <code>error 1105</code> при каждом запуске).</li>
+</ul>
+
 <h2>✨ Возможности</h2>
 <div class="grid">
   <div class="card">
