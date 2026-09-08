@@ -18,11 +18,32 @@ function appExecutableFileName()
     }
 }
 
+// Install folder name of this fork (see CPACK_PACKAGE_INSTALL_DIRECTORY in cmake/CPack.cmake).
+function installDirName()
+{
+    return "AmneziaVPN_Reconnect";
+}
+
+function firstExisting(paths)
+{
+    for (var i = 0; i < paths.length; i++) {
+        if (installer.fileExists(paths[i])) {
+            return paths[i];
+        }
+    }
+    return paths[0];
+}
+
 function appInstalled()
 {
     if (runningOnWindows()) {
-        appInstalledUninstallerPath = installer.value("RootDir") + "Program Files/AmneziaVPN/maintenancetool.exe";
-        appInstalledUninstallerPath_x86 = installer.value("RootDir") + "Program Files (x86)/AmneziaVPN/maintenancetool.exe";
+        // The fork lives in AmneziaVPN_Reconnect, the official client in AmneziaVPN; either one
+        // must be removed first (same exe and service names).
+        var root = installer.value("RootDir");
+        appInstalledUninstallerPath = firstExisting([root + "Program Files/" + installDirName() + "/maintenancetool.exe",
+                                                     root + "Program Files/AmneziaVPN/maintenancetool.exe"]);
+        appInstalledUninstallerPath_x86 = firstExisting([root + "Program Files (x86)/" + installDirName() + "/maintenancetool.exe",
+                                                         root + "Program Files (x86)/AmneziaVPN/maintenancetool.exe"]);
     } else if (runningOnMacOS()){
         appInstalledUninstallerPath = "/Applications/" + appName() + ".app/maintenancetool.app/Contents/MacOS/maintenancetool";
     } else if (runningOnLinux()){
@@ -205,10 +226,10 @@ onBrowseButtonClicked = function()
     var widget = gui.pageById(QInstaller.TargetDirectory);
     if (widget !== null) {
         if (runningOnWindows()) {
-            // On Windows we are appending \<APP_NAME> if selected path don't ends with <APP_NAME>
+            // On Windows we are appending \<install dir> if the selected path doesn't end with it
             var targetDir = widget.TargetDirectoryLineEdit.text;
-            if (! endsWith(targetDir, appName())) {
-                targetDir = targetDir + "\\" + appName();
+            if (! endsWith(targetDir, installDirName())) {
+                targetDir = targetDir + "\\" + installDirName();
             }
             installer.setValue("TargetDir", targetDir);
             widget.TargetDirectoryLineEdit.setText(installer.value("TargetDir"));

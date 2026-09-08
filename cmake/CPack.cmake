@@ -7,7 +7,10 @@ elseif(APPLE AND NOT IOS AND NOT MACOS_NE)
 elseif(LINUX AND NOT ANDROID)
     set(CPACK_PACKAGE_FILE_NAME "AmneziaVPN_Reconnect_${AMNEZIAVPN_VERSION}_linux_x64")
 endif()
-set(CPACK_PACKAGE_INSTALL_DIRECTORY AmneziaVPN)
+# Fork: own install folder (C:\Program Files\AmneziaVPN_Reconnect) and product title, so it
+# is distinguishable from the official client. The exe/service names stay AmneziaVPN.
+set(CPACK_PACKAGE_NAME              "AmneziaVPN Reconnect+Proxy")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY AmneziaVPN_Reconnect)
 set(CPACK_PACKAGE_EXECUTABLES       AmneziaVPN AmneziaVPN)
 set(CPACK_PRE_BUILD_SCRIPTS         ${CMAKE_CURRENT_LIST_DIR}/sign_binaries.cmake)
 set(CPACK_POST_BUILD_SCRIPTS        ${CMAKE_CURRENT_LIST_DIR}/sign_packages.cmake)
@@ -24,7 +27,7 @@ endif()
 
 # === CPack IFW generator settings ===
 set(CPACK_IFW_PACKAGE_NAME                          AmneziaVPN)
-set(CPACK_IFW_PACKAGE_TITLE                         AmneziaVPN)
+set(CPACK_IFW_PACKAGE_TITLE                         "AmneziaVPN Reconnect+Proxy")
 set(CPACK_IFW_PACKAGE_WIZARD_DEFAULT_WIDTH          600)
 set(CPACK_IFW_PACKAGE_WIZARD_DEFAULT_HEIGHT         380)
 set(CPACK_IFW_PACKAGE_WIZARD_STYLE                  Modern)

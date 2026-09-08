@@ -16,7 +16,9 @@ All changes are **client-side only** (`client/`) plus one new standalone helper 
 - **Two local proxies** instead of one: **Direct** (bypasses the VPN, real IP) and **VPN** (through the tunnel — another PC exits through your VPN). Each has a bind address (`127.0.0.1` / `0.0.0.0` / IP), port, **optional login/password** (HTTP 407 Basic + SOCKS5 RFC 1929), **client IP allowlist**, log. The VPN proxy runs from a separate copy of the helper in `%APPDATA%` (otherwise split-tunnel would exclude both).
 - **HTTPS (TLS) proxy** — a third type: the client→proxy channel is encrypted; a self-signed certificate is generated automatically, with an export-`.cer` button. The helper now links OpenSSL. Instructions: `README_certs.md` / `README_certs_RU.md`.
 - Docs: `WORKFLOW.md` (build/installers/merge/release), `docs/reconnect/SETUP{,_RU}.md`, `docs/proxy/ARCHITECTURE{,_RU}.md`, `HISTORY.md`, landing pages `index.html` / `index_ru.html`.
-- Installers are now named `AmneziaVPN_Reconnect_<version>_windows_x64.{exe,msi}`.
+- Installers are now named `AmneziaVPN_Reconnect_<version>_windows_x64.{exe,msi}`; they install into
+  `C:\Program Files\AmneziaVPN_Reconnect` and appear as **AmneziaVPN Reconnect+Proxy** in Apps & features
+  (the exe and service names stay `AmneziaVPN`, so an official client is removed first).
 - Direct proxy: **Launch Firefox** and **Launch Yandex Browser** buttons next to Chrome / Edge (Firefox via a generated profile, see §7).
 
 ### Merge with upstream 5.0.1.1 (2026-08-17)

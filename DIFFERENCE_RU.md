@@ -16,7 +16,9 @@
 - **Два локальных прокси** вместо одного: **Direct** (мимо VPN, реальный IP) и **VPN** (через туннель — другой комп выходит через твой VPN). У каждого: адрес привязки (`127.0.0.1` / `0.0.0.0` / IP), порт, **опциональный логин/пароль** (HTTP 407 Basic + SOCKS5 RFC1929), **allowlist клиентских IP**, лог. VPN-прокси запускается из отдельной копии helper'а в `%APPDATA%` (иначе split-tunnel исключил бы оба).
 - **HTTPS (TLS) прокси** — третий тип: канал клиент→прокси шифруется; самоподписанный сертификат генерируется автоматически, кнопка экспорта `.cer`. Helper теперь линкуется с OpenSSL. Инструкции: `README_certs.md` / `README_certs_RU.md`.
 - Docs: `WORKFLOW.md` (сборка/установщики/мерж/релиз), `docs/reconnect/SETUP{,_RU}.md`, `docs/proxy/ARCHITECTURE{,_RU}.md`, `HISTORY.md`, лендинги `index.html` / `index_ru.html`.
-- Установщики теперь называются `AmneziaVPN_Reconnect_<версия>_windows_x64.{exe,msi}`.
+- Установщики теперь называются `AmneziaVPN_Reconnect_<версия>_windows_x64.{exe,msi}`; ставятся в
+  `C:\Program Files\AmneziaVPN_Reconnect` и в «Приложениях» видны как **AmneziaVPN Reconnect+Proxy**
+  (имена exe и службы остаются `AmneziaVPN`, поэтому официальный клиент сначала удаляется).
 - Direct proxy: кнопки **Launch Firefox** и **Launch Yandex Browser** рядом с Chrome / Edge (Firefox — через сгенерированный профиль, см. §7).
 
 ### Слияние с upstream 5.0.1.1 (2026-08-17)

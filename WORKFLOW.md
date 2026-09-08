@@ -110,7 +110,8 @@ The dev client talks to whatever **installed** `AmneziaVPN-service` is running. 
 service-side changes (e.g. IPC), install a fresh package (section 6/8) instead.
 
 > **Gotcha — two exes:** the dev build (`deploy\build\client\AmneziaVPN.exe`) is different from the
-> installed one (`C:\Program Files\AmneziaVPN\AmneziaVPN.exe`). Launch the one you actually changed.
+> installed one (`C:\Program Files\AmneziaVPN_Reconnect\AmneziaVPN.exe`; the official client
+> installs into `C:\Program Files\AmneziaVPN`). Launch the one you actually changed.
 
 ---
 
