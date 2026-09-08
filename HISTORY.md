@@ -21,6 +21,7 @@
 
 ### Two proxies and HTTPS (September 2026)
 - **2026-09-08** — **two local proxies** (bypass-VPN and *through*-VPN, so another PC can share the VPN exit), **login/password**, **IP allowlist**, bind address, and the **HTTPS (TLS) proxy type** with an auto-generated self-signed certificate — `c26207ab`, `9d4ce4a1`. Docs: `WORKFLOW.md`, `README_certs.md` / `README_certs_RU.md`, this file, and the fork section in `README.md`.
+- **2026-09-08, evening** — first GitHub release `v5.0.1.1-reconnect-proxy` (installers renamed `AmneziaVPN_Reconnect_*`); guides `docs/reconnect/SETUP*.md`, `docs/proxy/ARCHITECTURE*.md` with clickable code links; landing pages `index.html` / `index_ru.html` with an **interactive mind map**; `DIFFERENCE.md` split into EN + `DIFFERENCE_RU.md`. On the Direct proxy page: a row per browser — **Chrome, Edge, Firefox, Yandex Browser** — with *Launch*, *Copy* and the exact command line — `3334ccbe`, `dc1626d1`. The **tray icon** became a state-coloured disc (the previous "full-colour icon" was in fact the 150×22 wordmark and rendered as a blank square).
 
 ### Principles kept throughout
 - 🔧 **Client-side only** — the VPN service and drivers are stock; privileged work goes through the existing IPC.
@@ -48,6 +49,7 @@
 
 ### Два прокси и HTTPS (сентябрь 2026)
 - **2026-09-08** — **два локальных прокси** (мимо VPN и *через* VPN — чтобы другой ПК выходил через твой VPN), **логин/пароль**, **allowlist IP**, адрес привязки и **тип HTTPS (TLS)** с автосгенерированным самоподписанным сертификатом — `c26207ab`, `9d4ce4a1`. Документация: `WORKFLOW.md`, `README_certs.md` / `README_certs_RU.md`, этот файл и блок о форке в `README.md`.
+- **2026-09-08, вечер** — первый релиз на GitHub `v5.0.1.1-reconnect-proxy` (установщики переименованы в `AmneziaVPN_Reconnect_*`); руководства `docs/reconnect/SETUP*.md`, `docs/proxy/ARCHITECTURE*.md` с кликабельными ссылками на код; лендинги `index.html` / `index_ru.html` с **интерактивным майндмапом**; `DIFFERENCE.md` разделён на EN + `DIFFERENCE_RU.md`. На странице Direct-прокси — по строке на браузер: **Chrome, Edge, Firefox, Yandex Browser** — с *Launch*, *Copy* и готовой командной строкой — `3334ccbe`, `dc1626d1`. **Иконка трея** стала цветным кругом по состоянию (прежняя «полноцветная иконка» на деле была надписью 150×22 и выглядела пустым квадратом).
 
 ### Принципы, которых держались всё время
 - 🔧 **Только клиентская сторона** — служба VPN и драйверы штатные; привилегированные операции идут через существующий IPC.
