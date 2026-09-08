@@ -424,79 +424,114 @@ void ProxyInstance::clearLog()
     }
 }
 
-QString ProxyInstance::findBrowser() const
-{
-    QStringList candidates;
+namespace {
+    // Windows: "App Paths\<exe>" registry entry (HKCU, then HKLM) followed by the usual
+    // install folders; first existing file wins.
+    QString findExecutable(const QString &appPathsExe, const QStringList &relativePaths)
+    {
+        QStringList candidates;
 #if defined(Q_OS_WIN)
-    const QStringList exeNames { QStringLiteral("chrome.exe"), QStringLiteral("msedge.exe") };
-    const QStringList hives { QStringLiteral("HKEY_CURRENT_USER"), QStringLiteral("HKEY_LOCAL_MACHINE") };
-    for (const QString &exe : exeNames) {
+        const QStringList hives { QStringLiteral("HKEY_CURRENT_USER"), QStringLiteral("HKEY_LOCAL_MACHINE") };
         for (const QString &hive : hives) {
-            QSettings reg(hive + QStringLiteral("\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\") + exe,
+            QSettings reg(hive + QStringLiteral("\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\") + appPathsExe,
                           QSettings::NativeFormat);
             const QString path = reg.value(QStringLiteral(".")).toString();
             if (!path.isEmpty()) {
                 candidates << path;
             }
         }
-    }
-    const QStringList roots { qEnvironmentVariable("ProgramFiles"),
-                              qEnvironmentVariable("ProgramFiles(x86)"),
-                              qEnvironmentVariable("LOCALAPPDATA") };
-    for (const QString &root : roots) {
-        if (!root.isEmpty()) {
-            candidates << root + QStringLiteral("/Google/Chrome/Application/chrome.exe");
+        const QStringList roots { qEnvironmentVariable("ProgramFiles"),
+                                  qEnvironmentVariable("ProgramFiles(x86)"),
+                                  qEnvironmentVariable("LOCALAPPDATA") };
+        for (const QString &rel : relativePaths) {
+            for (const QString &root : roots) {
+                if (!root.isEmpty()) {
+                    candidates << root + "/" + rel;
+                }
+            }
         }
-    }
-    for (const QString &root : roots) {
-        if (!root.isEmpty()) {
-            candidates << root + QStringLiteral("/Microsoft/Edge/Application/msedge.exe");
-        }
-    }
+#else
+        Q_UNUSED(appPathsExe);
+        Q_UNUSED(relativePaths);
 #endif
-    for (const QString &c : candidates) {
-        if (!c.isEmpty() && QFileInfo::exists(c)) {
-            return c;
+        for (const QString &c : candidates) {
+            if (!c.isEmpty() && QFileInfo::exists(c)) {
+                return c;
+            }
         }
+        return {};
     }
-    return {};
+}
+
+QString ProxyInstance::findChrome() const
+{
+    return findExecutable(QStringLiteral("chrome.exe"), { QStringLiteral("Google/Chrome/Application/chrome.exe") });
+}
+
+QString ProxyInstance::findEdge() const
+{
+    return findExecutable(QStringLiteral("msedge.exe"), { QStringLiteral("Microsoft/Edge/Application/msedge.exe") });
+}
+
+QString ProxyInstance::findBrowser() const
+{
+    const QString chrome = findChrome();
+    return chrome.isEmpty() ? findEdge() : chrome;
 }
 
 QString ProxyInstance::findYandexBrowser() const
 {
-    QStringList candidates;
-#if defined(Q_OS_WIN)
-    const QStringList hives { QStringLiteral("HKEY_CURRENT_USER"), QStringLiteral("HKEY_LOCAL_MACHINE") };
-    for (const QString &hive : hives) {
-        QSettings reg(hive + QStringLiteral("\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\browser.exe"),
-                      QSettings::NativeFormat);
-        const QString path = reg.value(QStringLiteral(".")).toString();
-        if (path.contains(QStringLiteral("Yandex"), Qt::CaseInsensitive)) {
-            candidates << path;
-        }
-    }
-    const QStringList roots { qEnvironmentVariable("LOCALAPPDATA"),
-                              qEnvironmentVariable("ProgramFiles"),
-                              qEnvironmentVariable("ProgramFiles(x86)") };
-    for (const QString &root : roots) {
-        if (!root.isEmpty()) {
-            candidates << root + QStringLiteral("/Yandex/YandexBrowser/Application/browser.exe");
-        }
-    }
-#endif
-    for (const QString &c : candidates) {
-        if (!c.isEmpty() && QFileInfo::exists(c)) {
-            return c;
-        }
-    }
-    return {};
+    const QString found = findExecutable(QStringLiteral("browser.exe"),
+                                         { QStringLiteral("Yandex/YandexBrowser/Application/browser.exe") });
+    // "browser.exe" in App Paths could in theory belong to something else.
+    return found.contains(QStringLiteral("Yandex"), Qt::CaseInsensitive) ? found : QString();
 }
 
-bool ProxyInstance::launchChromium(const QString &exe, const QString &profileTag)
+QString ProxyInstance::browserExe(int kind) const
 {
-    if (!isRunning() || exe.isEmpty()) {
+    switch (kind) {
+    case 1: return findEdge();
+    case 2: return findFirefox();
+    case 3: return findYandexBrowser();
+    default: return findChrome();
+    }
+}
+
+bool ProxyInstance::browserInstalled(int kind) const
+{
+    return !browserExe(kind).isEmpty();
+}
+
+QStringList ProxyInstance::browserArgs(int kind)
+{
+    switch (kind) {
+    case 1: return chromiumArgs(QStringLiteral("edge"));
+    case 2: {
+        QString dir = prepareFirefoxProfile();
+        if (dir.isEmpty()) {
+            dir = QDir::tempPath() + "/amnezia-proxy-firefox-" + m_instanceId;
+        }
+        return firefoxArgs(dir);
+    }
+    case 3: return chromiumArgs(QStringLiteral("yandex"));
+    default: return chromiumArgs(QStringLiteral("chrome"));
+    }
+}
+
+bool ProxyInstance::launch(int kind)
+{
+    if (!isRunning()) {
         return false;
     }
+    const QString exe = browserExe(kind);
+    if (exe.isEmpty()) {
+        return false;
+    }
+    return QProcess::startDetached(exe, browserArgs(kind));
+}
+
+QStringList ProxyInstance::chromiumArgs(const QString &profileTag) const
+{
     // Point the browser at the local endpoint (127.0.0.1) regardless of bind host.
     const int t = proxyType();
     const QString scheme = (t == Https) ? QStringLiteral("https")
@@ -505,22 +540,57 @@ bool ProxyInstance::launchChromium(const QString &exe, const QString &profileTag
     const QString localAddr = QStringLiteral("%1://127.0.0.1:%2").arg(scheme).arg(port());
     // Separate user-data-dir: the flag is per process, an already running instance of the
     // same browser would otherwise just open a new window without the proxy.
-    const QString userDataDir = QDir::tempPath() + QStringLiteral("/amnezia-proxy-") + profileTag + "-" + m_instanceId;
-    const QStringList args {
-        QStringLiteral("--proxy-server=") + localAddr,
-        QStringLiteral("--user-data-dir=") + userDataDir
-    };
-    return QProcess::startDetached(exe, args);
+    const QString userDataDir = QDir::toNativeSeparators(
+        QDir::tempPath() + QStringLiteral("/amnezia-proxy-") + profileTag + "-" + m_instanceId);
+    return { QStringLiteral("--proxy-server=") + localAddr,
+             QStringLiteral("--user-data-dir=") + userDataDir };
+}
+
+bool ProxyInstance::launchChromium(const QString &exe, const QString &profileTag)
+{
+    if (!isRunning() || exe.isEmpty()) {
+        return false;
+    }
+    return QProcess::startDetached(exe, chromiumArgs(profileTag));
+}
+
+namespace {
+    // PowerShell call-operator syntax: & "C:\path with spaces\app.exe" --arg="value with spaces"
+    QString psQuote(const QString &s)
+    {
+        if (s.contains(' ') || s.contains('"')) {
+            QString q = s;
+            q.replace('"', QStringLiteral("`\""));
+            return '"' + q + '"';
+        }
+        return s;
+    }
+}
+
+QString ProxyInstance::browserCommand(int kind)
+{
+    static const char *const fallbackNames[] = { "chrome.exe", "msedge.exe", "firefox.exe", "browser.exe" };
+    QString exe = browserExe(kind);
+    if (exe.isEmpty()) {
+        // Not installed: still show a meaningful line with the plain executable name.
+        exe = QString::fromLatin1(fallbackNames[(kind >= 0 && kind < 4) ? kind : 0]);
+    }
+    QStringList parts { QStringLiteral("&"), psQuote(QDir::toNativeSeparators(exe)) };
+    const QStringList args = browserArgs(kind);
+    for (const QString &a : args) {
+        parts << psQuote(a);
+    }
+    return parts.join(' ');
 }
 
 bool ProxyInstance::launchBrowser()
 {
-    return launchChromium(findBrowser(), QStringLiteral("browser"));
+    return launch(0) || launch(1);
 }
 
 bool ProxyInstance::launchYandexBrowser()
 {
-    return launchChromium(findYandexBrowser(), QStringLiteral("yandex"));
+    return launch(3);
 }
 
 QString ProxyInstance::findFirefox() const
@@ -553,22 +623,24 @@ QString ProxyInstance::findFirefox() const
     return {};
 }
 
+QStringList ProxyInstance::firefoxArgs(const QString &profileDir) const
+{
+    return { QStringLiteral("-no-remote"), QStringLiteral("-profile"), QDir::toNativeSeparators(profileDir) };
+}
+
 bool ProxyInstance::launchFirefox()
 {
-    if (!isRunning()) {
-        return false;
-    }
-    const QString firefox = findFirefox();
-    if (firefox.isEmpty()) {
-        return false;
-    }
+    return launch(2);
+}
 
+QString ProxyInstance::prepareFirefoxProfile()
+{
     // Firefox has no --proxy-server flag; proxy settings live in the profile. Use a
     // dedicated throw-away profile so the user's normal Firefox is untouched, and
     // regenerate user.js on every launch so it follows the current proxy settings.
     const QString profileDir = QDir::tempPath() + QStringLiteral("/amnezia-proxy-firefox-") + m_instanceId;
     if (!QDir().mkpath(profileDir)) {
-        return false;
+        return {};
     }
 
     const int t = proxyType();
@@ -586,7 +658,7 @@ bool ProxyInstance::launchFirefox()
         const QString pacPath = profileDir + QStringLiteral("/proxy.pac");
         QFile pac(pacPath);
         if (!pac.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-            return false;
+            return {};
         }
         pac.write(QStringLiteral("function FindProxyForURL(url, host) { return \"HTTPS 127.0.0.1:%1\"; }\n")
                       .arg(port()).toUtf8());
@@ -610,14 +682,9 @@ bool ProxyInstance::launchFirefox()
 
     QFile userJs(profileDir + QStringLiteral("/user.js"));
     if (!userJs.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-        return false;
+        return {};
     }
     userJs.write(prefs.join('\n').toUtf8() + "\n");
     userJs.close();
-
-    const QStringList args {
-        QStringLiteral("-no-remote"),
-        QStringLiteral("-profile"), QDir::toNativeSeparators(profileDir)
-    };
-    return QProcess::startDetached(firefox, args);
+    return profileDir;
 }

@@ -142,6 +142,10 @@ Two independent local proxies based on the helper exe `amnezia-direct-proxy.exe`
   so a dedicated throw-away profile with `user.js` is generated — SOCKS5/HTTP prefs, or a PAC
   `HTTPS 127.0.0.1:port` for the TLS type — and Firefox starts with `-no-remote -profile`;
   `security.enterprise_roots.enabled` lets it trust the exported certificate from the Windows store).
+  Each browser (**Chrome, Edge, Firefox, Yandex Browser**) has its own row: *Launch* button, *Copy*
+  button and the **exact command line (PowerShell syntax)** the button runs — selectable text
+  (Ctrl+C works), built from the detected browser path and the current proxy type/port;
+  browsers that are not installed are marked *not found*.
 
 The helper is Winsock + OpenSSL (for TLS), has no window and exits together with the client (watches
 the parent PID). The service is unchanged — the VPN exclusion goes through the existing IPC.
@@ -150,9 +154,10 @@ the parent PID). The service is unchanged — the VPN exclusion goes through the
 Architecture with concrete code lines and diagrams: [`docs/proxy/ARCHITECTURE.md`](./docs/proxy/ARCHITECTURE.md).
 
 ### 8. System tray improvements
-- The Windows icon is drawn **in full colour** (upstream uses a monochrome `setIsMask` mask that
-  is easy to lose on the taskbar).
-- Added a **tooltip** and a repeated `show()` (survives an Explorer/taskbar restart).
+- Windows/Linux: the stock tray glyph is white-on-transparent and vanishes on a light taskbar. The
+  fork paints it onto a **coloured disc that shows the state** — green = connected, grey =
+  disconnected, red = error (`systemTrayNotificationHandler.cpp`, `setTrayIcon`).
+- Added a **tooltip** with the state and a repeated `show()` (survives an Explorer/taskbar restart).
 
 ---
 

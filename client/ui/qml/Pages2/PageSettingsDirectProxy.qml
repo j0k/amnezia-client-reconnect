@@ -14,6 +14,99 @@ import "../Components"
 PageType {
     id: root
 
+    // One browser: "<name>  [Launch] [Copy]" + the exact command line (selectable, Ctrl+C works).
+    component CommandBlock: ColumnLayout {
+        id: block
+        property var proxy        // ProxyInstance
+        property string title
+        property int kind         // 0 Chrome, 1 Edge, 2 Firefox, 3 Yandex Browser
+        // proxy.address is a notifying property: both re-evaluate when type/port change.
+        readonly property string command: (block.proxy && block.proxy.address) ? block.proxy.browserCommand(block.kind) : ""
+        readonly property bool installed: (block.proxy && block.proxy.address) ? block.proxy.browserInstalled(block.kind) : false
+
+        Layout.fillWidth: true
+        spacing: 0
+
+        RowLayout {
+            Layout.fillWidth: true
+            Layout.topMargin: 12
+            Layout.leftMargin: 16
+            Layout.rightMargin: 16
+            spacing: 8
+
+            ListItemTitleType {
+                Layout.fillWidth: true
+                text: block.title + (block.installed ? "" : "  · " + qsTr("not found"))
+                color: block.installed ? AmneziaStyle.color.paleGray : AmneziaStyle.color.mutedGray
+            }
+
+            BasicButtonType {
+                Layout.preferredWidth: 110
+                Layout.preferredHeight: 40
+                text: qsTr("Launch")
+                enabled: block.installed
+
+                clickedFunc: function() {
+                    if (!block.proxy.running) {
+                        PageController.showNotificationMessage(qsTr("Enable the proxy first"))
+                        return
+                    }
+                    if (block.proxy.launch(block.kind)) {
+                        PageController.showNotificationMessage(block.title + " " + qsTr("launched via proxy"))
+                    } else {
+                        PageController.showNotificationMessage(qsTr("Could not launch") + " " + block.title)
+                    }
+                }
+            }
+
+            BasicButtonType {
+                Layout.preferredWidth: 90
+                Layout.preferredHeight: 40
+                text: qsTr("Copy")
+                defaultColor: AmneziaStyle.color.transparent
+                hoveredColor: AmneziaStyle.color.translucentWhite
+                pressedColor: AmneziaStyle.color.sheerWhite
+                textColor: AmneziaStyle.color.paleGray
+                borderWidth: 1
+
+                clickedFunc: function() {
+                    GC.copyToClipBoard(block.command)
+                    PageController.showNotificationMessage(qsTr("Command copied"))
+                }
+            }
+        }
+
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.topMargin: 6
+            Layout.leftMargin: 16
+            Layout.rightMargin: 16
+            Layout.bottomMargin: 4
+            implicitHeight: cmdText.implicitHeight + 24
+            radius: 8
+            color: AmneziaStyle.color.onyxBlack
+            border.width: 1
+            border.color: AmneziaStyle.color.slateGray
+
+            TextEdit {
+                id: cmdText
+                anchors.fill: parent
+                anchors.margins: 12
+                readOnly: true
+                selectByMouse: true
+                selectByKeyboard: true
+                wrapMode: TextEdit.WrapAnywhere
+                textFormat: TextEdit.PlainText
+                font.family: "Courier New"
+                font.pixelSize: 13
+                color: AmneziaStyle.color.paleGray
+                selectionColor: AmneziaStyle.color.mutedGray
+                selectedTextColor: AmneziaStyle.color.onyxBlack
+                text: block.command
+            }
+        }
+    }
+
     // One full settings block for a single ProxyInstance (direct or vpn).
     component ProxySection: ColumnLayout {
         id: section
@@ -242,71 +335,23 @@ PageType {
 
         DividerType {}
 
-        BasicButtonType {
+        //
+        // Browsers via this proxy: Launch with one click, or copy the exact command line
+        //
+        CaptionTextType {
             visible: !section.proxy.viaVpn
             Layout.fillWidth: true
-            Layout.topMargin: 12
+            Layout.topMargin: 16
             Layout.leftMargin: 16
             Layout.rightMargin: 16
-
-            text: qsTr("Launch Chrome / Edge via this proxy")
-
-            clickedFunc: function() {
-                if (!section.proxy.running) {
-                    PageController.showNotificationMessage(qsTr("Enable the proxy first"))
-                    return
-                }
-                if (section.proxy.launchBrowser()) {
-                    PageController.showNotificationMessage(qsTr("Browser launched via proxy"))
-                } else {
-                    PageController.showNotificationMessage(qsTr("Could not find Chrome or Edge"))
-                }
-            }
+            color: AmneziaStyle.color.mutedGray
+            text: qsTr("Browsers via this proxy — Launch opens a separate profile; the line below is the same command in PowerShell syntax (select + Ctrl+C or Copy)")
         }
 
-        BasicButtonType {
-            visible: !section.proxy.viaVpn
-            Layout.fillWidth: true
-            Layout.topMargin: 8
-            Layout.leftMargin: 16
-            Layout.rightMargin: 16
-
-            text: qsTr("Launch Firefox via this proxy")
-
-            clickedFunc: function() {
-                if (!section.proxy.running) {
-                    PageController.showNotificationMessage(qsTr("Enable the proxy first"))
-                    return
-                }
-                if (section.proxy.launchFirefox()) {
-                    PageController.showNotificationMessage(qsTr("Firefox launched via proxy (separate profile)"))
-                } else {
-                    PageController.showNotificationMessage(qsTr("Could not find Firefox"))
-                }
-            }
-        }
-
-        BasicButtonType {
-            visible: !section.proxy.viaVpn
-            Layout.fillWidth: true
-            Layout.topMargin: 8
-            Layout.leftMargin: 16
-            Layout.rightMargin: 16
-
-            text: qsTr("Launch Yandex Browser via this proxy")
-
-            clickedFunc: function() {
-                if (!section.proxy.running) {
-                    PageController.showNotificationMessage(qsTr("Enable the proxy first"))
-                    return
-                }
-                if (section.proxy.launchYandexBrowser()) {
-                    PageController.showNotificationMessage(qsTr("Yandex Browser launched via proxy"))
-                } else {
-                    PageController.showNotificationMessage(qsTr("Could not find Yandex Browser"))
-                }
-            }
-        }
+        CommandBlock { visible: !section.proxy.viaVpn; proxy: section.proxy; title: "Google Chrome";   kind: 0 }
+        CommandBlock { visible: !section.proxy.viaVpn; proxy: section.proxy; title: "Microsoft Edge";  kind: 1 }
+        CommandBlock { visible: !section.proxy.viaVpn; proxy: section.proxy; title: "Firefox";         kind: 2 }
+        CommandBlock { visible: !section.proxy.viaVpn; proxy: section.proxy; title: "Yandex Browser";  kind: 3 }
 
         //
         // Log

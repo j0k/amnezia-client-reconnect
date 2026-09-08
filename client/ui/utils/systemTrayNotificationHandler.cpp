@@ -13,6 +13,8 @@
 #include <QApplication>
 #include <QDesktopServices>
 #include <QIcon>
+#include <QPainter>
+#include <QPixmap>
 #include <QWindow>
 
 #include "version.h"
@@ -89,11 +91,35 @@ void SystemTrayNotificationHandler::setTrayIcon(const QString &iconPath)
 #ifdef Q_OS_MAC
     m_statusIcon->setIcon(iconPath);
 #else
-    // The monochrome tray glyphs (:/images/tray/*.png) render as an invisible white
-    // icon on a light taskbar. Use the full-colour app logo instead — it stays visible
-    // on any theme. The connection state is conveyed via the tooltip (see setTrayState).
-    Q_UNUSED(iconPath)
-    QIcon trayIcon(":/images/AmneziaVPN.png");
+    // The stock tray glyphs (:/images/tray/*.png) are white-on-transparent, which is
+    // invisible on a light taskbar. Paint the glyph onto a solid disc whose colour tells
+    // the connection state: green = connected, grey = disconnected, red = error.
+    QColor disc(QStringLiteral("#6B6F76"));
+    if (iconPath.contains(QStringLiteral("active"))) {
+        disc = QColor(QStringLiteral("#2E9E5B"));
+    } else if (iconPath.contains(QStringLiteral("error"))) {
+        disc = QColor(QStringLiteral("#C0392B"));
+    }
+
+    QIcon trayIcon;
+    const QPixmap glyph(iconPath);
+    for (const int size : { 16, 20, 24, 32, 48, 64 }) {
+        QPixmap px(size, size);
+        px.fill(Qt::transparent);
+        QPainter p(&px);
+        p.setRenderHint(QPainter::Antialiasing);
+        p.setRenderHint(QPainter::SmoothPixmapTransform);
+        p.setPen(Qt::NoPen);
+        p.setBrush(disc);
+        p.drawEllipse(QRectF(0.5, 0.5, size - 1, size - 1));
+        if (!glyph.isNull()) {
+            // keep a margin so the glyph sits inside the disc
+            const qreal inset = size * 0.16;
+            p.drawPixmap(QRectF(inset, inset, size - 2 * inset, size - 2 * inset), glyph, glyph.rect());
+        }
+        p.end();
+        trayIcon.addPixmap(px);
+    }
     m_systemTrayIcon.setIcon(trayIcon);
     // Make sure the icon is (re)shown — e.g. after an Explorer/taskbar restart.
     if (!m_systemTrayIcon.isVisible()) {

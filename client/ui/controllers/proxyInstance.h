@@ -88,11 +88,17 @@ public:
 public slots:
     void openLogFile();
     void clearLog();
-    bool launchBrowser();       // Chrome / Edge
-    bool launchYandexBrowser(); // Chromium-based too: same --proxy-server flag
-    // Firefox has no proxy command-line flag: a dedicated profile with user.js (and a PAC
-    // for the HTTPS type) is generated and Firefox is started with it.
+    // Browser kinds for launch()/browserCommand(): 0 = Chrome, 1 = Edge, 2 = Firefox, 3 = Yandex Browser.
+    // Chromium browsers get --proxy-server + a private --user-data-dir. Firefox has no proxy
+    // flag: a dedicated profile with user.js (and a PAC for the HTTPS type) is generated and
+    // Firefox is started with -no-remote -profile.
+    Q_INVOKABLE bool launch(int kind);
+    Q_INVOKABLE bool browserInstalled(int kind) const;
+    // The exact command line launch(kind) runs, in PowerShell syntax, to copy into a terminal.
+    Q_INVOKABLE QString browserCommand(int kind);
+    bool launchBrowser();       // Chrome, falling back to Edge (kept for older callers)
     bool launchFirefox();
+    bool launchYandexBrowser();
     // Copies the TLS certificate to the Desktop so it can be trusted on client machines.
     // Returns the exported path, or an empty string on failure.
     QString exportCertificate();
@@ -112,10 +118,19 @@ private:
     void setRunning(bool running);
     bool ensureVpnExeCopy() const; // for the via-VPN instance: copy helper to a distinct path
     QString displayHost() const;
-    QString findBrowser() const;
+    QString findBrowser() const;   // Chrome, else Edge
+    QString findChrome() const;
+    QString findEdge() const;
     QString findFirefox() const;
     QString findYandexBrowser() const;
+    // Executable for a browser kind, or "" when not installed.
+    QString browserExe(int kind) const;
+    QStringList browserArgs(int kind);
     bool launchChromium(const QString &exe, const QString &profileTag);
+    QStringList chromiumArgs(const QString &profileTag) const;
+    // Writes/refreshes the dedicated Firefox profile; returns its directory or "" on failure.
+    QString prepareFirefoxProfile();
+    QStringList firefoxArgs(const QString &profileDir) const;
     QString keyPath() const;
     QString buildSan() const;
 
