@@ -1,13 +1,15 @@
-// amnezia-direct-proxy — a tiny local proxy whose upstream traffic is meant to
-// bypass the VPN (the parent app excludes THIS process from the tunnel via the
-// split-tunnel driver). Supports HTTP CONNECT and SOCKS5 (with remote DNS).
+// amnezia-direct-proxy — a tiny local proxy. Supports HTTP CONNECT and SOCKS5
+// (with remote DNS), optional login/password auth, a source-IP allowlist, and
+// an optional TLS-encrypted client channel ("HTTPS proxy").
 //
 // Usage:
-//   amnezia-direct-proxy --mode socks5|http --port 8899 [--host 127.0.0.1] [--log <file>]
+//   amnezia-direct-proxy --mode socks5|http --port 8899 [--host 127.0.0.1]
+//                        [--user U --pass P] [--allow ip,ip] [--log <file>]
+//                        [--tls --cert <pem> --key <pem> [--san <list>]]
 //
-// It resolves destination host names itself (remote DNS), so — being excluded
-// from the VPN — both the DNS lookup and the connection go out the physical
-// interface, giving the real geo. Optionally logs every destination host.
+// With --tls the listening socket speaks TLS (the client->proxy hop is encrypted);
+// inside the tunnel it is the same HTTP CONNECT / SOCKS5 protocol. If the cert/key
+// files do not exist they are generated as a self-signed pair.
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -15,6 +17,13 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <windows.h>
+
+#include <openssl/err.h>
+#include <openssl/evp.h>
+#include <openssl/pem.h>
+#include <openssl/ssl.h>
+#include <openssl/x509.h>
+#include <openssl/x509v3.h>
 
 #include <atomic>
 #include <chrono>
@@ -41,8 +50,25 @@ int g_port = 8899;
 std::string g_logPath;
 unsigned long g_parentPid = 0; // if set, exit when this process dies (no orphans)
 
+std::string g_user;            // optional basic-auth credentials
+std::string g_pass;
+bool g_authRequired = false;
+std::set<std::string> g_allow; // allowed peer IPs; empty = allow any
+
+bool g_tls = false;            // TLS-wrap the client connection
+std::string g_certPath;
+std::string g_keyPath;
+std::string g_san = "DNS:localhost,IP:127.0.0.1";
+SSL_CTX *g_sslCtx = nullptr;
+
 std::mutex g_logMutex;
 std::set<std::string> g_seen;
+
+// A client connection: raw socket, or the same socket wrapped in TLS.
+struct Conn {
+    SOCKET s = INVALID_SOCKET;
+    SSL *ssl = nullptr;
+};
 
 std::string timestamp()
 {
@@ -72,7 +98,40 @@ void logHost(const std::string &host, int port)
     }
 }
 
-// Blocking send of the whole buffer.
+std::string base64Encode(const std::string &in)
+{
+    static const char *tbl =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    std::string out;
+    int val = 0;
+    int bits = -6;
+    for (unsigned char c : in) {
+        val = (val << 8) + c;
+        bits += 8;
+        while (bits >= 0) {
+            out.push_back(tbl[(val >> bits) & 0x3F]);
+            bits -= 6;
+        }
+    }
+    if (bits > -6) {
+        out.push_back(tbl[((val << 8) >> (bits + 8)) & 0x3F]);
+    }
+    while (out.size() % 4) {
+        out.push_back('=');
+    }
+    return out;
+}
+
+bool peerAllowed(const std::string &ip)
+{
+    if (g_allow.empty()) {
+        return true;
+    }
+    return g_allow.count(ip) > 0;
+}
+
+// ---- raw socket helpers (upstream side) ----
+
 bool sendAll(SOCKET s, const char *data, int len)
 {
     int sent = 0;
@@ -86,8 +145,43 @@ bool sendAll(SOCKET s, const char *data, int len)
     return true;
 }
 
-// Connect to host:port, resolving the name locally (remote DNS from the client's
-// point of view). Returns an open socket or INVALID_SOCKET.
+// ---- client-side helpers (raw or TLS) ----
+
+int cRecv(Conn &c, char *buf, int n)
+{
+    if (c.ssl) {
+        return SSL_read(c.ssl, buf, n);
+    }
+    return recv(c.s, buf, n, 0);
+}
+
+bool cSendAll(Conn &c, const char *data, int len)
+{
+    int sent = 0;
+    while (sent < len) {
+        int n = c.ssl ? SSL_write(c.ssl, data + sent, len - sent)
+                      : send(c.s, data + sent, len - sent, 0);
+        if (n <= 0) {
+            return false;
+        }
+        sent += n;
+    }
+    return true;
+}
+
+bool cRecvExact(Conn &c, char *buf, int n)
+{
+    int got = 0;
+    while (got < n) {
+        int r = cRecv(c, buf + got, n - got);
+        if (r <= 0) {
+            return false;
+        }
+        got += r;
+    }
+    return true;
+}
+
 SOCKET connectUpstream(const std::string &host, int port)
 {
     addrinfo hints{};
@@ -117,65 +211,101 @@ SOCKET connectUpstream(const std::string &host, int port)
     return up;
 }
 
-// Bidirectional relay until either side closes.
-void pipeSockets(SOCKET a, SOCKET b)
+// Bidirectional relay between the (possibly TLS) client and the raw upstream.
+void pipeConn(Conn &c, SOCKET up)
 {
     char buf[65536];
     for (;;) {
+        // Drain any TLS record data already buffered before blocking in select().
+        if (c.ssl && SSL_pending(c.ssl) > 0) {
+            int n = SSL_read(c.ssl, buf, sizeof(buf));
+            if (n <= 0 || !sendAll(up, buf, n)) {
+                break;
+            }
+            continue;
+        }
         fd_set fds;
         FD_ZERO(&fds);
-        FD_SET(a, &fds);
-        FD_SET(b, &fds);
-        SOCKET maxfd = (a > b ? a : b);
+        FD_SET(c.s, &fds);
+        FD_SET(up, &fds);
+        SOCKET maxfd = (c.s > up ? c.s : up);
         timeval tv{};
         tv.tv_sec = 120;
         int r = select(static_cast<int>(maxfd + 1), &fds, nullptr, nullptr, &tv);
         if (r <= 0) {
             break;
         }
-        if (FD_ISSET(a, &fds)) {
-            int n = recv(a, buf, sizeof(buf), 0);
-            if (n <= 0 || !sendAll(b, buf, n)) {
+        if (FD_ISSET(c.s, &fds)) {
+            int n = cRecv(c, buf, sizeof(buf));
+            if (n <= 0 || !sendAll(up, buf, n)) {
                 break;
             }
         }
-        if (FD_ISSET(b, &fds)) {
-            int n = recv(b, buf, sizeof(buf), 0);
-            if (n <= 0 || !sendAll(a, buf, n)) {
+        if (FD_ISSET(up, &fds)) {
+            int n = recv(up, buf, sizeof(buf), 0);
+            if (n <= 0 || !cSendAll(c, buf, n)) {
                 break;
             }
         }
     }
 }
 
-// Read exactly n bytes.
-bool recvExact(SOCKET s, char *buf, int n)
+// Checks Proxy-Authorization: Basic <base64(user:pass)> against the configured creds.
+bool httpAuthOk(const std::string &head)
 {
-    int got = 0;
-    while (got < n) {
-        int r = recv(s, buf + got, n - got, 0);
-        if (r <= 0) {
-            return false;
-        }
-        got += r;
+    if (!g_authRequired) {
+        return true;
     }
-    return true;
+    std::string lower = head;
+    for (char &ch : lower) {
+        ch = static_cast<char>(tolower(static_cast<unsigned char>(ch)));
+    }
+    const std::string key = "proxy-authorization:";
+    size_t pos = lower.find(key);
+    if (pos == std::string::npos) {
+        return false;
+    }
+    size_t vstart = pos + key.size();
+    size_t vend = head.find("\r\n", vstart);
+    std::string value = head.substr(vstart, vend - vstart);
+    size_t b = value.find_first_not_of(" \t");
+    if (b == std::string::npos) {
+        return false;
+    }
+    value = value.substr(b);
+    std::string schemeLower = value.substr(0, 6);
+    for (char &ch : schemeLower) {
+        ch = static_cast<char>(tolower(static_cast<unsigned char>(ch)));
+    }
+    if (schemeLower != "basic ") {
+        return false;
+    }
+    return value.substr(6) == base64Encode(g_user + ":" + g_pass);
 }
 
-void handleHttp(SOCKET client)
+void handleHttp(Conn &c)
 {
-    // Read request headers up to CRLFCRLF.
     std::string head;
-    char c;
+    char ch;
     while (head.find("\r\n\r\n") == std::string::npos) {
-        int n = recv(client, &c, 1, 0);
+        int n = cRecv(c, &ch, 1);
         if (n <= 0) {
             return;
         }
-        head.push_back(c);
+        head.push_back(ch);
         if (head.size() > 65536) {
             return;
         }
+    }
+
+    if (!httpAuthOk(head)) {
+        const char *deny =
+            "HTTP/1.1 407 Proxy Authentication Required\r\n"
+            "Proxy-Authenticate: Basic realm=\"amnezia-proxy\"\r\n"
+            "Content-Length: 0\r\n"
+            "Connection: close\r\n\r\n";
+        cSendAll(c, deny, static_cast<int>(std::strlen(deny)));
+        return;
     }
 
     const size_t sp1 = head.find(' ');
@@ -197,18 +327,17 @@ void handleHttp(SOCKET client)
         logHost(host, port);
         SOCKET up = connectUpstream(host, port);
         if (up == INVALID_SOCKET) {
-            sendAll(client, "HTTP/1.1 502 Bad Gateway\r\n\r\n", 28);
+            cSendAll(c, "HTTP/1.1 502 Bad Gateway\r\n\r\n", 28);
             return;
         }
         const char *ok = "HTTP/1.1 200 Connection Established\r\n\r\n";
-        if (!sendAll(client, ok, static_cast<int>(std::strlen(ok)))) {
+        if (!cSendAll(c, ok, static_cast<int>(std::strlen(ok)))) {
             closesocket(up);
             return;
         }
-        pipeSockets(client, up);
+        pipeConn(c, up);
         closesocket(up);
     } else {
-        // Plain HTTP: host from absolute URI or Host header.
         std::string host;
         int port = 80;
         if (target.rfind("http://", 0) == 0) {
@@ -224,14 +353,14 @@ void handleHttp(SOCKET client)
             }
         }
         if (host.empty()) {
-            const std::string lower = head;
             size_t hp = std::string::npos;
-            // case-insensitive search for "\nhost:"
-            for (size_t i = 0; i + 5 < lower.size(); ++i) {
-                if ((lower[i] == '\n') &&
-                    (tolower(lower[i + 1]) == 'h') && (tolower(lower[i + 2]) == 'o') &&
-                    (tolower(lower[i + 3]) == 's') && (tolower(lower[i + 4]) == 't') &&
-                    (lower[i + 5] == ':')) {
+            for (size_t i = 0; i + 5 < head.size(); ++i) {
+                if ((head[i] == '\n') &&
+                    (tolower(static_cast<unsigned char>(head[i + 1])) == 'h') &&
+                    (tolower(static_cast<unsigned char>(head[i + 2])) == 'o') &&
+                    (tolower(static_cast<unsigned char>(head[i + 3])) == 's') &&
+                    (tolower(static_cast<unsigned char>(head[i + 4])) == 't') &&
+                    (head[i + 5] == ':')) {
                     hp = i + 6;
                     break;
                 }
@@ -241,7 +370,6 @@ void handleHttp(SOCKET client)
             }
             size_t end = head.find("\r\n", hp);
             std::string hv = head.substr(hp, end - hp);
-            // trim
             size_t b = hv.find_first_not_of(" \t");
             size_t e = hv.find_last_not_of(" \t\r");
             if (b == std::string::npos) {
@@ -261,62 +389,103 @@ void handleHttp(SOCKET client)
         if (up == INVALID_SOCKET) {
             return;
         }
-        // Forward the already-read request head, then relay the rest.
         if (sendAll(up, head.c_str(), static_cast<int>(head.size()))) {
-            pipeSockets(client, up);
+            pipeConn(c, up);
         }
         closesocket(up);
     }
 }
 
-void handleSocks5(SOCKET client)
+void handleSocks5(Conn &c)
 {
-    // Greeting: VER=5, NMETHODS, METHODS...
     unsigned char hdr[2];
-    if (!recvExact(client, reinterpret_cast<char *>(hdr), 2) || hdr[0] != 0x05) {
+    if (!cRecvExact(c, reinterpret_cast<char *>(hdr), 2) || hdr[0] != 0x05) {
         return;
     }
     const int nmethods = hdr[1];
-    std::vector<char> methods(nmethods);
-    if (nmethods > 0 && !recvExact(client, methods.data(), nmethods)) {
-        return;
-    }
-    // Reply: no authentication required.
-    const unsigned char noAuth[2] = {0x05, 0x00};
-    if (!sendAll(client, reinterpret_cast<const char *>(noAuth), 2)) {
+    std::vector<unsigned char> methods(nmethods);
+    if (nmethods > 0 && !cRecvExact(c, reinterpret_cast<char *>(methods.data()), nmethods)) {
         return;
     }
 
-    // Request: VER, CMD, RSV, ATYP, DST.ADDR, DST.PORT
+    if (g_authRequired) {
+        bool offersUserPass = false;
+        for (unsigned char m : methods) {
+            if (m == 0x02) {
+                offersUserPass = true;
+            }
+        }
+        if (!offersUserPass) {
+            const unsigned char no[2] = {0x05, 0xFF};
+            cSendAll(c, reinterpret_cast<const char *>(no), 2);
+            return;
+        }
+        const unsigned char sel[2] = {0x05, 0x02};
+        if (!cSendAll(c, reinterpret_cast<const char *>(sel), 2)) {
+            return;
+        }
+        unsigned char ver;
+        if (!cRecvExact(c, reinterpret_cast<char *>(&ver), 1) || ver != 0x01) {
+            return;
+        }
+        unsigned char ulen;
+        if (!cRecvExact(c, reinterpret_cast<char *>(&ulen), 1)) {
+            return;
+        }
+        std::string uname(ulen, '\0');
+        if (ulen > 0 && !cRecvExact(c, &uname[0], ulen)) {
+            return;
+        }
+        unsigned char plen;
+        if (!cRecvExact(c, reinterpret_cast<char *>(&plen), 1)) {
+            return;
+        }
+        std::string passwd(plen, '\0');
+        if (plen > 0 && !cRecvExact(c, &passwd[0], plen)) {
+            return;
+        }
+        const bool ok = (uname == g_user && passwd == g_pass);
+        const unsigned char resp[2] = {0x01, static_cast<unsigned char>(ok ? 0x00 : 0x01)};
+        cSendAll(c, reinterpret_cast<const char *>(resp), 2);
+        if (!ok) {
+            return;
+        }
+    } else {
+        const unsigned char noAuth[2] = {0x05, 0x00};
+        if (!cSendAll(c, reinterpret_cast<const char *>(noAuth), 2)) {
+            return;
+        }
+    }
+
     unsigned char req[4];
-    if (!recvExact(client, reinterpret_cast<char *>(req), 4) || req[0] != 0x05) {
+    if (!cRecvExact(c, reinterpret_cast<char *>(req), 4) || req[0] != 0x05) {
         return;
     }
     const unsigned char cmd = req[1];
     const unsigned char atyp = req[3];
 
     std::string host;
-    if (atyp == 0x01) { // IPv4
+    if (atyp == 0x01) {
         unsigned char a[4];
-        if (!recvExact(client, reinterpret_cast<char *>(a), 4)) {
+        if (!cRecvExact(c, reinterpret_cast<char *>(a), 4)) {
             return;
         }
         char tmp[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, a, tmp, sizeof(tmp));
         host = tmp;
-    } else if (atyp == 0x03) { // domain name (remote DNS)
+    } else if (atyp == 0x03) {
         unsigned char len;
-        if (!recvExact(client, reinterpret_cast<char *>(&len), 1)) {
+        if (!cRecvExact(c, reinterpret_cast<char *>(&len), 1)) {
             return;
         }
         std::vector<char> d(len);
-        if (len > 0 && !recvExact(client, d.data(), len)) {
+        if (len > 0 && !cRecvExact(c, d.data(), len)) {
             return;
         }
         host.assign(d.data(), len);
-    } else if (atyp == 0x04) { // IPv6
+    } else if (atyp == 0x04) {
         unsigned char a[16];
-        if (!recvExact(client, reinterpret_cast<char *>(a), 16)) {
+        if (!cRecvExact(c, reinterpret_cast<char *>(a), 16)) {
             return;
         }
         char tmp[INET6_ADDRSTRLEN];
@@ -327,40 +496,159 @@ void handleSocks5(SOCKET client)
     }
 
     unsigned char portb[2];
-    if (!recvExact(client, reinterpret_cast<char *>(portb), 2)) {
+    if (!cRecvExact(c, reinterpret_cast<char *>(portb), 2)) {
         return;
     }
     const int port = (portb[0] << 8) | portb[1];
 
     auto reply = [&](unsigned char rep) {
         unsigned char r[10] = {0x05, rep, 0x00, 0x01, 0, 0, 0, 0, 0, 0};
-        sendAll(client, reinterpret_cast<const char *>(r), 10);
+        cSendAll(c, reinterpret_cast<const char *>(r), 10);
     };
 
-    if (cmd != 0x01) { // only CONNECT
-        reply(0x07); // command not supported
+    if (cmd != 0x01) {
+        reply(0x07);
         return;
     }
 
     logHost(host, port);
     SOCKET up = connectUpstream(host, port);
     if (up == INVALID_SOCKET) {
-        reply(0x05); // connection refused
+        reply(0x05);
         return;
     }
-    reply(0x00); // success
-    pipeSockets(client, up);
+    reply(0x00);
+    pipeConn(c, up);
     closesocket(up);
 }
 
-void handleClient(SOCKET client)
+void handleClient(SOCKET s)
 {
-    if (g_mode == Mode::Http) {
-        handleHttp(client);
-    } else {
-        handleSocks5(client);
+    Conn c;
+    c.s = s;
+    if (g_tls) {
+        c.ssl = SSL_new(g_sslCtx);
+        if (!c.ssl) {
+            closesocket(s);
+            return;
+        }
+        SSL_set_fd(c.ssl, static_cast<int>(s));
+        if (SSL_accept(c.ssl) <= 0) {
+            SSL_free(c.ssl);
+            closesocket(s);
+            return;
+        }
     }
-    closesocket(client);
+
+    if (g_mode == Mode::Http) {
+        handleHttp(c);
+    } else {
+        handleSocks5(c);
+    }
+
+    if (c.ssl) {
+        SSL_shutdown(c.ssl);
+        SSL_free(c.ssl);
+    }
+    closesocket(s);
+}
+
+// ---- TLS: self-signed cert generation + context ----
+
+bool fileExists(const std::string &p)
+{
+    std::ifstream f(p);
+    return f.good();
+}
+
+bool generateSelfSigned(const std::string &certPath, const std::string &keyPath, const std::string &san)
+{
+    EVP_PKEY *pkey = EVP_RSA_gen(2048);
+    if (!pkey) {
+        return false;
+    }
+    X509 *x = X509_new();
+    if (!x) {
+        EVP_PKEY_free(pkey);
+        return false;
+    }
+    X509_set_version(x, 2);
+    ASN1_INTEGER_set(X509_get_serialNumber(x), static_cast<long>(std::time(nullptr)));
+    X509_gmtime_adj(X509_get_notBefore(x), 0);
+    X509_gmtime_adj(X509_get_notAfter(x), 60L * 60L * 24L * 3650L); // 10 years
+    X509_set_pubkey(x, pkey);
+
+    X509_NAME *name = X509_get_subject_name(x);
+    X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC,
+                               reinterpret_cast<const unsigned char *>("amnezia-proxy"), -1, -1, 0);
+    X509_NAME_add_entry_by_txt(name, "O", MBSTRING_ASC,
+                               reinterpret_cast<const unsigned char *>("AmneziaVPN reconnect fork"), -1, -1, 0);
+    X509_set_issuer_name(x, name);
+
+    X509V3_CTX ctx;
+    X509V3_set_ctx_nodb(&ctx);
+    X509V3_set_ctx(&ctx, x, x, nullptr, nullptr, 0);
+    if (X509_EXTENSION *ext = X509V3_EXT_conf_nid(nullptr, &ctx, NID_subject_alt_name,
+                                                   const_cast<char *>(san.c_str()))) {
+        X509_add_ext(x, ext, -1);
+        X509_EXTENSION_free(ext);
+    }
+    if (X509_EXTENSION *ext = X509V3_EXT_conf_nid(nullptr, &ctx, NID_basic_constraints,
+                                                   const_cast<char *>("CA:FALSE"))) {
+        X509_add_ext(x, ext, -1);
+        X509_EXTENSION_free(ext);
+    }
+    if (X509_EXTENSION *ext = X509V3_EXT_conf_nid(nullptr, &ctx, NID_ext_key_usage,
+                                                   const_cast<char *>("serverAuth"))) {
+        X509_add_ext(x, ext, -1);
+        X509_EXTENSION_free(ext);
+    }
+
+    bool ok = X509_sign(x, pkey, EVP_sha256()) > 0;
+    if (ok) {
+        // Write via BIO, not FILE*: passing the app's FILE* into the OpenSSL DLL requires
+        // OPENSSL_Applink and otherwise aborts with "no OPENSSL_Applink".
+        BIO *bc = BIO_new_file(certPath.c_str(), "wb");
+        BIO *bk = BIO_new_file(keyPath.c_str(), "wb");
+        ok = bc && bk
+             && PEM_write_bio_X509(bc, x) > 0
+             && PEM_write_bio_PrivateKey(bk, pkey, nullptr, nullptr, 0, nullptr, nullptr) > 0;
+        if (bc) {
+            BIO_free(bc);
+        }
+        if (bk) {
+            BIO_free(bk);
+        }
+    }
+    X509_free(x);
+    EVP_PKEY_free(pkey);
+    return ok;
+}
+
+bool initTls()
+{
+    if (g_certPath.empty() || g_keyPath.empty()) {
+        std::fprintf(stderr, "--tls requires --cert and --key\n");
+        return false;
+    }
+    if (!fileExists(g_certPath) || !fileExists(g_keyPath)) {
+        if (!generateSelfSigned(g_certPath, g_keyPath, g_san)) {
+            std::fprintf(stderr, "failed to generate self-signed certificate\n");
+            return false;
+        }
+    }
+    g_sslCtx = SSL_CTX_new(TLS_server_method());
+    if (!g_sslCtx) {
+        return false;
+    }
+    SSL_CTX_set_min_proto_version(g_sslCtx, TLS1_2_VERSION);
+    if (SSL_CTX_use_certificate_file(g_sslCtx, g_certPath.c_str(), SSL_FILETYPE_PEM) <= 0 ||
+        SSL_CTX_use_PrivateKey_file(g_sslCtx, g_keyPath.c_str(), SSL_FILETYPE_PEM) <= 0 ||
+        !SSL_CTX_check_private_key(g_sslCtx)) {
+        std::fprintf(stderr, "failed to load TLS certificate/key\n");
+        return false;
+    }
+    return true;
 }
 
 void parseArgs(int argc, char **argv)
@@ -379,11 +667,39 @@ void parseArgs(int argc, char **argv)
             g_logPath = next();
         } else if (a == "--parent-pid") {
             g_parentPid = std::strtoul(next().c_str(), nullptr, 10);
+        } else if (a == "--user") {
+            g_user = next();
+        } else if (a == "--pass") {
+            g_pass = next();
+        } else if (a == "--allow") {
+            std::string list = next();
+            size_t start = 0;
+            while (start <= list.size()) {
+                size_t comma = list.find(',', start);
+                std::string item = list.substr(start, comma == std::string::npos ? std::string::npos : comma - start);
+                size_t b = item.find_first_not_of(" \t");
+                size_t e = item.find_last_not_of(" \t");
+                if (b != std::string::npos) {
+                    g_allow.insert(item.substr(b, e - b + 1));
+                }
+                if (comma == std::string::npos) {
+                    break;
+                }
+                start = comma + 1;
+            }
+        } else if (a == "--tls") {
+            g_tls = true;
+        } else if (a == "--cert") {
+            g_certPath = next();
+        } else if (a == "--key") {
+            g_keyPath = next();
+        } else if (a == "--san") {
+            g_san = next();
         }
     }
+    g_authRequired = (!g_user.empty());
 }
 
-// Exit as soon as the parent (the client) process dies, so we never leave orphans.
 void watchParent()
 {
     if (g_parentPid == 0) {
@@ -412,6 +728,10 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    if (g_tls && !initTls()) {
+        return 1;
+    }
+
     SOCKET srv = socket(AF_INET, SOCK_STREAM, 0);
     if (srv == INVALID_SOCKET) {
         std::fprintf(stderr, "socket() failed\n");
@@ -434,13 +754,21 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    std::fprintf(stdout, "amnezia-direct-proxy %s on %s:%d\n",
-                 g_mode == Mode::Http ? "http" : "socks5", g_host.c_str(), g_port);
+    std::fprintf(stdout, "amnezia-direct-proxy %s%s on %s:%d\n",
+                 g_tls ? "tls+" : "", g_mode == Mode::Http ? "http" : "socks5", g_host.c_str(), g_port);
     std::fflush(stdout);
 
     for (;;) {
-        SOCKET client = accept(srv, nullptr, nullptr);
+        sockaddr_in peer{};
+        int plen = sizeof(peer);
+        SOCKET client = accept(srv, reinterpret_cast<sockaddr *>(&peer), &plen);
         if (client == INVALID_SOCKET) {
+            continue;
+        }
+        char ipbuf[INET_ADDRSTRLEN] = {0};
+        inet_ntop(AF_INET, &peer.sin_addr, ipbuf, sizeof(ipbuf));
+        if (!peerAllowed(ipbuf)) {
+            closesocket(client);
             continue;
         }
         std::thread(handleClient, client).detach();

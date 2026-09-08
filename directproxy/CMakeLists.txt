@@ -4,7 +4,9 @@
 # with a no-window flag to avoid a console popup.
 add_executable(amnezia-direct-proxy main.cpp)
 
-target_link_libraries(amnezia-direct-proxy PRIVATE ws2_32)
+# OpenSSL provides the optional TLS ("HTTPS proxy") client channel. The targets are
+# imported at the top level via find_package(OpenSSL) (conan) and visible here.
+target_link_libraries(amnezia-direct-proxy PRIVATE ws2_32 crypt32 OpenSSL::SSL OpenSSL::Crypto)
 
 # Build as a GUI-subsystem app (no console window ever) while keeping main() as the
 # entry point. This guarantees no stray console windows when the client launches it.

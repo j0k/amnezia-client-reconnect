@@ -89,6 +89,10 @@ public:
     int reconnectPauseSeconds() const;
     void setReconnectPauseSeconds(int seconds);
 
+    // Generic per-proxy-instance settings (key = Conf/proxy/<instance>/<key>).
+    QVariant proxyValue(const QString &instance, const QString &key, const QVariant &defaultValue = QVariant()) const;
+    void setProxyValue(const QString &instance, const QString &key, const QVariant &value);
+
     // Direct proxy (local proxy whose traffic bypasses the VPN)
     bool isDirectProxyEnabled() const;
     void setDirectProxyEnabled(bool enabled);

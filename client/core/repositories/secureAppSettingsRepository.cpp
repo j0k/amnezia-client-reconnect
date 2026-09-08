@@ -446,14 +446,27 @@ void SecureAppSettingsRepository::setReconnectPauseSeconds(int seconds)
     setValue("Conf/reconnectPauseSeconds", seconds < 5 ? 5 : seconds);
 }
 
+QVariant SecureAppSettingsRepository::proxyValue(const QString &instance, const QString &key,
+                                                 const QVariant &defaultValue) const
+{
+    return value("Conf/proxy/" + instance + "/" + key, defaultValue);
+}
+
+void SecureAppSettingsRepository::setProxyValue(const QString &instance, const QString &key,
+                                                const QVariant &value)
+{
+    setValue("Conf/proxy/" + instance + "/" + key, value);
+}
+
 bool SecureAppSettingsRepository::isDirectProxyEnabled() const
 {
-    return value("Conf/directProxyEnabled", false).toBool();
+    // The "direct" proxy instance is the one excluded from the VPN.
+    return proxyValue("direct", "enabled", false).toBool();
 }
 
 void SecureAppSettingsRepository::setDirectProxyEnabled(bool enabled)
 {
-    setValue("Conf/directProxyEnabled", enabled);
+    setProxyValue("direct", "enabled", enabled);
 }
 
 int SecureAppSettingsRepository::directProxyType() const
