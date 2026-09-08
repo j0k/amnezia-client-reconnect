@@ -70,25 +70,25 @@
 
 <h2>🔍 What differs from the official client</h2>
 <ol>
-  <li><strong>Auto-reconnect watchdog</strong> — pings a host list → automatic reconnect (interval, all/any mode, random order, status, <em>Check now</em>).</li>
-  <li><strong>Test</strong> button under every host (resolved IP, packet loss, RTT).</li>
-  <li><strong>Stuck-reconnect recovery</strong> — abort → pause → retry (timeout / pause in seconds).</li>
-  <li><strong>Home-screen indicators</strong> — auto-reconnect / direct proxy / logs.</li>
-  <li><strong>Event log</strong> — txt with timestamps, 4 checkbox categories.</li>
-  <li><strong>Live app split-tunneling</strong> — no reconnect, page editable while the VPN is up.</li>
-  <li><strong>Two local proxies</strong> — <em>Direct</em> (bypasses the VPN) + <em>VPN</em> (through the tunnel); each with bind address, port, optional login/password, IP allowlist, log; types SOCKS5 / HTTP / <strong>HTTPS (TLS)</strong> with an auto-generated certificate and export.</li>
-  <li><strong>Tray</strong> — state-coloured icon (green / grey / red) that is visible on a light taskbar, tooltip with the state.</li>
-  <li><strong>Process Recorder</strong> — timeline of processes (NEW / EXITED with run time, expand, full path, time slider).</li>
+  <li>🔁 <strong>Auto-reconnect watchdog</strong> — pings a host list → automatic reconnect (interval, all/any mode, random order, status, <em>Check now</em>).</li>
+  <li>🧪 <strong>Test</strong> button under every host (resolved IP, packet loss, RTT).</li>
+  <li>⏱️ <strong>Stuck-reconnect recovery</strong> — abort → pause → retry (timeout / pause in seconds).</li>
+  <li>🏠 <strong>Home-screen indicators</strong> — auto-reconnect / direct proxy / logs.</li>
+  <li>📝 <strong>Event log</strong> — txt with timestamps, 4 checkbox categories.</li>
+  <li>🧩 <strong>Live app split-tunneling</strong> — no reconnect, page editable while the VPN is up.</li>
+  <li>🔀 <strong>Two local proxies</strong> — <em>Direct</em> (bypasses the VPN) + <em>VPN</em> (through the tunnel); each with bind address, port, optional login/password, IP allowlist, log; types SOCKS5 / HTTP / <strong>HTTPS (TLS)</strong> with an auto-generated certificate and export.</li>
+  <li>🟢 <strong>Tray</strong> — state-coloured icon (green / grey / red) that is visible on a light taskbar, tooltip with the state.</li>
+  <li>🎞 <strong>Process Recorder</strong> — timeline of processes (NEW / EXITED with run time, expand, full path, time slider).</li>
 </ol>
-<p>Documentation: <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/DIFFERENCE.md">DIFFERENCE</a>, <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/WORKFLOW.md">WORKFLOW</a>, README_certs <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/README_certs.md">EN</a> / <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/README_certs_RU.md">RU</a>.</p>
-<p><strong>Added after that (8 Sep 2026):</strong></p>
+<p>📄 Documentation: <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/DIFFERENCE.md">DIFFERENCE</a>, <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/WORKFLOW.md">WORKFLOW</a>, README_certs <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/README_certs.md">EN</a> / <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/README_certs_RU.md">RU</a>.</p>
+<p><strong>➕ Added after that (8 Sep 2026):</strong></p>
 <ul>
-  <li>First GitHub release <code>v5.0.1.1-reconnect-proxy</code>; installers renamed <code>AmneziaVPN_Reconnect_*</code>, both signed.</li>
-  <li>Guides with clickable code links: <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/docs/reconnect/SETUP.md">docs/reconnect/SETUP</a> (which hosts to ping and why) and <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/docs/proxy/ARCHITECTURE.md">docs/proxy/ARCHITECTURE</a> (how the proxies work, with diagrams); <code>DIFFERENCE.md</code> split into EN + RU; <code>HISTORY.md</code>.</li>
-  <li>These landing pages with the interactive mind map (and <code>.mymind</code> files for My Mind).</li>
-  <li>Direct proxy page: a row per browser — <strong>Chrome, Edge, Firefox, Yandex Browser</strong> — with <em>Launch</em>, <em>Copy</em> and the exact PowerShell command line (selectable text); Firefox gets an auto-generated profile.</li>
-  <li>Tray icon fix — the earlier "full-colour icon" was really the 150×22 wordmark and showed as a blank square.</li>
-  <li>Update check is skipped when the build has no Amnezia API gateway key (no more <code>error 1105</code> on every start).</li>
+  <li>🚀 First GitHub release <code>v5.0.1.1-reconnect-proxy</code>; installers renamed <code>AmneziaVPN_Reconnect_*</code>, both signed.</li>
+  <li>📚 Guides with clickable code links: <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/docs/reconnect/SETUP.md">docs/reconnect/SETUP</a> (which hosts to ping and why) and <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/docs/proxy/ARCHITECTURE.md">docs/proxy/ARCHITECTURE</a> (how the proxies work, with diagrams); <code>DIFFERENCE.md</code> split into EN + RU; <code>HISTORY.md</code>.</li>
+  <li>🧠 These landing pages with the interactive mind map (and <code>.mymind</code> files for My Mind).</li>
+  <li>🌐 Direct proxy page: a row per browser — <strong>Chrome, Edge, Firefox, Yandex Browser</strong> — with <em>Launch</em>, <em>Copy</em> and the exact PowerShell command line (selectable text); Firefox gets an auto-generated profile.</li>
+  <li>🟢 Tray icon fix — the earlier "full-colour icon" was really the 150×22 wordmark and showed as a blank square.</li>
+  <li>🔕 Update check is skipped when the build has no Amnezia API gateway key (no more <code>error 1105</code> on every start).</li>
 </ul>
 
 <h2>✨ Features</h2>
