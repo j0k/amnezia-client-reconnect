@@ -68,6 +68,7 @@ std::set<std::string> g_seen;
 struct Conn {
     SOCKET s = INVALID_SOCKET;
     SSL *ssl = nullptr;
+    std::string peer; // client IP (who is using the proxy) — for the log
 };
 
 std::string timestamp()
@@ -80,7 +81,9 @@ std::string timestamp()
     return buf;
 }
 
-void logHost(const std::string &host, int port)
+// One line per connection: "[time] NEW  <client ip> -> host:port". NEW = this client has
+// not asked for this host before (keyed per client, so two PCs each get their own NEW).
+void logHost(const std::string &peer, const std::string &host, int port)
 {
     if (g_logPath.empty()) {
         return;
@@ -89,12 +92,12 @@ void logHost(const std::string &host, int port)
     bool isNew;
     {
         std::lock_guard<std::mutex> lock(g_logMutex);
-        isNew = g_seen.insert(host).second;
+        isNew = g_seen.insert(peer + "|" + host).second;
     }
     std::lock_guard<std::mutex> lock(g_logMutex);
     std::ofstream f(g_logPath, std::ios::app);
     if (f) {
-        f << "[" << timestamp() << "] " << (isNew ? "NEW  " : "     ") << key << "\n";
+        f << "[" << timestamp() << "] " << (isNew ? "NEW  " : "     ") << peer << " -> " << key << "\n";
     }
 }
 
@@ -324,7 +327,7 @@ void handleHttp(Conn &c)
             host = target.substr(0, colon);
             port = std::atoi(target.c_str() + colon + 1);
         }
-        logHost(host, port);
+        logHost(c.peer, host, port);
         SOCKET up = connectUpstream(host, port);
         if (up == INVALID_SOCKET) {
             cSendAll(c, "HTTP/1.1 502 Bad Gateway\r\n\r\n", 28);
@@ -384,7 +387,7 @@ void handleHttp(Conn &c)
                 host = hv;
             }
         }
-        logHost(host, port);
+        logHost(c.peer, host, port);
         SOCKET up = connectUpstream(host, port);
         if (up == INVALID_SOCKET) {
             return;
@@ -511,7 +514,7 @@ void handleSocks5(Conn &c)
         return;
     }
 
-    logHost(host, port);
+    logHost(c.peer, host, port);
     SOCKET up = connectUpstream(host, port);
     if (up == INVALID_SOCKET) {
         reply(0x05);
@@ -522,10 +525,11 @@ void handleSocks5(Conn &c)
     closesocket(up);
 }
 
-void handleClient(SOCKET s)
+void handleClient(SOCKET s, std::string peer)
 {
     Conn c;
     c.s = s;
+    c.peer = std::move(peer);
     if (g_tls) {
         c.ssl = SSL_new(g_sslCtx);
         if (!c.ssl) {
@@ -771,6 +775,6 @@ int main(int argc, char **argv)
             closesocket(client);
             continue;
         }
-        std::thread(handleClient, client).detach();
+        std::thread(handleClient, client, std::string(ipbuf)).detach();
     }
 }
