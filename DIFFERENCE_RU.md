@@ -15,7 +15,7 @@
 - **Process Recorder** (Settings → Connection → Process recorder): снимки всех процессов каждые N сек (настраиваемо, напр. `3.33`), метки **NEW** / **EXITED с длительностью работы**, раскрытие по клику (PID/PPID/потоки/время старта/полный путь + Copy path), ползунок времени (LIVE / перемотка), фильтр, «только новые».
 - **Два локальных прокси** вместо одного: **Direct** (мимо VPN, реальный IP) и **VPN** (через туннель — другой комп выходит через твой VPN). У каждого: адрес привязки (`127.0.0.1` / `0.0.0.0` / IP), порт, **опциональный логин/пароль** (HTTP 407 Basic + SOCKS5 RFC1929), **allowlist клиентских IP**, лог. VPN-прокси запускается из отдельной копии helper'а в `%APPDATA%` (иначе split-tunnel исключил бы оба).
 - **HTTPS (TLS) прокси** — третий тип: канал клиент→прокси шифруется; самоподписанный сертификат генерируется автоматически, кнопка экспорта `.cer`. Helper теперь линкуется с OpenSSL. Инструкции: `README_certs.md` / `README_certs_RU.md`.
-- Docs: `WORKFLOW.md` (сборка/установщики/мерж/релиз), `docs/reconnect/SETUP{,_RU}.md`, `docs/proxy/ARCHITECTURE{,_RU}.md`, `HISTORY.md`, лендинги `index.html` / `index_ru.html`.
+- Docs: `WORKFLOW.md` (сборка/установщики/мерж/релиз), `docs/reconnect/SETUP{,_RU}.md`, `docs/proxy/ARCHITECTURE{,_RU}.md`, `HISTORY{,_RU}.md`, лендинги `index.html` / `index_ru.html`.
 - Установщики теперь называются `AmneziaVPN_Reconnect_<версия>_windows_x64.{exe,msi}`; ставятся в
   `C:\Program Files\AmneziaVPN_Reconnect` и в «Приложениях» видны как **AmneziaVPN Reconnect+Proxy**
   (имена exe и службы остаются `AmneziaVPN`, поэтому официальный клиент сначала удаляется).
@@ -194,7 +194,7 @@ Helper — Winsock + OpenSSL (для TLS), без окна, сам заверш�
 - `client/ui/controllers/processRecorderController.{h,cpp}` — Process Recorder.
 - `client/ui/qml/Pages2/PageSettingsReconnect.qml`, `PageSettingsDirectProxy.qml`, `PageSettingsProcessRecorder.qml` — страницы настроек.
 - `directproxy/main.cpp`, `directproxy/CMakeLists.txt` — helper-прокси (Winsock + OpenSSL: SOCKS5 / HTTP / HTTPS, логин/пароль, allowlist).
-- `README_certs.md`, `README_certs_RU.md` — сертификаты HTTPS-прокси; `WORKFLOW.md` — сборка / установщики / мерж / релиз; `docs/reconnect/`, `docs/proxy/` — руководства; `HISTORY.md`; `index.html`, `index_ru.html` — лендинги; `docs/*.mymind` — майндмапы.
+- `README_certs.md`, `README_certs_RU.md` — сертификаты HTTPS-прокси; `WORKFLOW.md` — сборка / установщики / мерж / релиз; `docs/reconnect/`, `docs/proxy/` — руководства; `HISTORY.md`, `HISTORY_RU.md`; `index.html`, `index_ru.html` — лендинги; `docs/*.mymind` — майндмапы.
 
 **Изменённые:**
 - `client/core/repositories/secureAppSettingsRepository.{h,cpp}` — настройки `Conf/reconnect*`, `Conf/proxy/<instance>/*`.

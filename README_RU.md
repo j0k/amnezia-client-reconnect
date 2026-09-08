@@ -13,7 +13,7 @@
 > Служба VPN и драйверы **не менялись** — всё работает со штатной службой. Подписанные установщики для Windows (`.exe` / `.msi`) — на странице [Releases](https://github.com/j0k/amnezia-client-reconnect/releases).
 >
 > 📄 Полный список отличий: [RU](./DIFFERENCE_RU.md) / [EN](./DIFFERENCE.md) · 🛠️ [Сборка и релиз](./WORKFLOW.md) · 🔐 Сертификаты HTTPS-прокси: [RU](./README_certs_RU.md) / [EN](./README_certs.md)
-> 📚 Доки: 🔁 Настройка Auto-reconnect и какие хосты пинговать — [RU](./docs/reconnect/SETUP_RU.md) / [EN](./docs/reconnect/SETUP.md) · 🔀 Архитектура локальных прокси (код + диаграммы) — [RU](./docs/proxy/ARCHITECTURE_RU.md) / [EN](./docs/proxy/ARCHITECTURE.md) · 📜 [История](./HISTORY.md) · 🧠 Майндмап ([My Mind](https://juri-konoplev.pro/my-mind/)): [RU](./docs/vpn-amnezia-reconnect_ru.mymind) / [EN](./docs/vpn-amnezia-reconnect_en.mymind)
+> 📚 Доки: 🔁 Настройка Auto-reconnect и какие хосты пинговать — [RU](./docs/reconnect/SETUP_RU.md) / [EN](./docs/reconnect/SETUP.md) · 🔀 Архитектура локальных прокси (код + диаграммы) — [RU](./docs/proxy/ARCHITECTURE_RU.md) / [EN](./docs/proxy/ARCHITECTURE.md) · 📜 История: [RU](./HISTORY_RU.md) / [EN](./HISTORY.md) · 🧠 Майндмап ([My Mind](https://juri-konoplev.pro/my-mind/)): [RU](./docs/vpn-amnezia-reconnect_ru.mymind) / [EN](./docs/vpn-amnezia-reconnect_en.mymind)
 >
 > ### 🛑 Как остановить AmneziaVPN и его службы из консоли
 > Пригодится перед обновлением/пересборкой (запущенный exe нельзя перезаписать) или чтобы всё аккуратно выключить. Команды для службы запускай в PowerShell **от администратора**.

@@ -76,7 +76,7 @@
 			{
 				"id": "ru_hs000",
 				"text": "📜 История",
-				"notes": "HISTORY.md",
+				"notes": "HISTORY_RU.md",
 				"color": "#c0392b",
 				"children": [
 					{ "id": "ru_hs001", "text": "Июль 2026: ночные обрывы → watchdog", "notes": "" },

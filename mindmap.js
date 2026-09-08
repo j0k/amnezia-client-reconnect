@@ -87,7 +87,7 @@
           { t: '.exe (IFW) + .msi (WiX 4), оба подписаны', n: 'AmneziaVPN_Reconnect_5.0.1.1_windows_x64.{exe,msi} + SHA256SUMS.txt', u: REL },
           { t: 'Остановить из консоли: Stop-Process / Stop-Service', n: 'README_RU.md → раздел 🛑.', u: GH + 'README_RU.md' }
         ] },
-        { t: '📜 История', c: '#c0392b', u: GH + 'HISTORY.md', k: [
+        { t: '📜 История', c: '#c0392b', u: GH + 'HISTORY_RU.md', k: [
           { t: 'Июль 2026: ночные обрывы → watchdog' },
           { t: '24 июля: Direct proxy' },
           { t: '17 авг: влит апстрим 5.0.1.1, установщики' },

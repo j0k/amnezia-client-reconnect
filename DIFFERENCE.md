@@ -15,7 +15,7 @@ All changes are **client-side only** (`client/`) plus one new standalone helper 
 - **Process Recorder** (Settings → Connection → Process recorder): snapshots of all processes every N seconds (configurable, e.g. `3.33`), **NEW** / **EXITED with run time** marks, click to expand (PID/PPID/threads/start time/full path + Copy path), time slider (LIVE / scrub back), filter, "only new".
 - **Two local proxies** instead of one: **Direct** (bypasses the VPN, real IP) and **VPN** (through the tunnel — another PC exits through your VPN). Each has a bind address (`127.0.0.1` / `0.0.0.0` / IP), port, **optional login/password** (HTTP 407 Basic + SOCKS5 RFC 1929), **client IP allowlist**, log. The VPN proxy runs from a separate copy of the helper in `%APPDATA%` (otherwise split-tunnel would exclude both).
 - **HTTPS (TLS) proxy** — a third type: the client→proxy channel is encrypted; a self-signed certificate is generated automatically, with an export-`.cer` button. The helper now links OpenSSL. Instructions: `README_certs.md` / `README_certs_RU.md`.
-- Docs: `WORKFLOW.md` (build/installers/merge/release), `docs/reconnect/SETUP{,_RU}.md`, `docs/proxy/ARCHITECTURE{,_RU}.md`, `HISTORY.md`, landing pages `index.html` / `index_ru.html`.
+- Docs: `WORKFLOW.md` (build/installers/merge/release), `docs/reconnect/SETUP{,_RU}.md`, `docs/proxy/ARCHITECTURE{,_RU}.md`, `HISTORY{,_RU}.md`, landing pages `index.html` / `index_ru.html`.
 - Installers are now named `AmneziaVPN_Reconnect_<version>_windows_x64.{exe,msi}`; they install into
   `C:\Program Files\AmneziaVPN_Reconnect` and appear as **AmneziaVPN Reconnect+Proxy** in Apps & features
   (the exe and service names stay `AmneziaVPN`, so an official client is removed first).
@@ -194,7 +194,7 @@ snapshot) and **EXITED** (finished — with its **run time**). Clicking a row ex
 - `client/ui/controllers/processRecorderController.{h,cpp}` — Process Recorder.
 - `client/ui/qml/Pages2/PageSettingsReconnect.qml`, `PageSettingsDirectProxy.qml`, `PageSettingsProcessRecorder.qml` — settings pages.
 - `directproxy/main.cpp`, `directproxy/CMakeLists.txt` — the proxy helper (Winsock + OpenSSL: SOCKS5 / HTTP / HTTPS, login/password, allowlist).
-- `README_certs.md`, `README_certs_RU.md` — HTTPS-proxy certificates; `WORKFLOW.md` — build / installers / merge / release; `docs/reconnect/`, `docs/proxy/` — guides; `HISTORY.md`; `index.html`, `index_ru.html` — landing pages; `docs/*.mymind` — mind maps.
+- `README_certs.md`, `README_certs_RU.md` — HTTPS-proxy certificates; `WORKFLOW.md` — build / installers / merge / release; `docs/reconnect/`, `docs/proxy/` — guides; `HISTORY.md`, `HISTORY_RU.md`; `index.html`, `index_ru.html` — landing pages; `docs/*.mymind` — mind maps.
 
 **Changed:**
 - `client/core/repositories/secureAppSettingsRepository.{h,cpp}` — `Conf/reconnect*`, `Conf/proxy/<instance>/*` settings.

@@ -1,8 +1,6 @@
 # 📜 History of `amnezia-client-reconnect`
 
-> 🇷🇺 Русская версия — ниже / [Russian version below](#-история-amnezia-client-reconnect)
-
-## 🇬🇧 English
+> 🇷🇺 Русская версия: [HISTORY_RU.md](./HISTORY_RU.md)
 
 ### Where it started
 - **2026-07-09** — fork point: upstream [`amnezia-client`](https://github.com/amnezia-vpn/amnezia-client) `dev` at commit `5e70eb20` (v4.9.0.3).
@@ -22,36 +20,9 @@
 ### Two proxies and HTTPS (September 2026)
 - **2026-09-08** — **two local proxies** (bypass-VPN and *through*-VPN, so another PC can share the VPN exit), **login/password**, **IP allowlist**, bind address, and the **HTTPS (TLS) proxy type** with an auto-generated self-signed certificate — `c26207ab`, `9d4ce4a1`. Docs: `WORKFLOW.md`, `README_certs.md` / `README_certs_RU.md`, this file, and the fork section in `README.md`.
 - **2026-09-08, evening** — first GitHub release `v5.0.1.1-reconnect-proxy` (installers renamed `AmneziaVPN_Reconnect_*`); guides `docs/reconnect/SETUP*.md`, `docs/proxy/ARCHITECTURE*.md` with clickable code links; landing pages `index.html` / `index_ru.html` with an **interactive mind map**; `DIFFERENCE.md` split into EN + `DIFFERENCE_RU.md`. On the Direct proxy page: a row per browser — **Chrome, Edge, Firefox, Yandex Browser** — with *Launch*, *Copy* and the exact command line — `3334ccbe`, `dc1626d1`. The **tray icon** became a state-coloured disc (the previous "full-colour icon" was in fact the 150×22 wordmark and rendered as a blank square).
+- **2026-09-08, late evening** — installers now install into `C:\Program Files\AmneziaVPN_Reconnect` and show up as **AmneziaVPN Reconnect+Proxy** (`bdb6489c`); home-screen indicator **VPN proxy enabled (LAN address)** (`580ce35f`); the proxy helper logs `<client ip> -> host:port` (`1e702724`); the update check is skipped when the build has no Amnezia API gateway key — no more `error 1105` (`b38ccce8`); landing pages: explicit list of differences, CRC32/SHA-256 table, VPN-proxy how-to recommending HTTP (CONNECT).
 
 ### Principles kept throughout
 - 🔧 **Client-side only** — the VPN service and drivers are stock; privileged work goes through the existing IPC.
 - 🧪 Every feature was exercised for real (ping checks, `curl` through the proxies, the 8-hour hang from the log) before shipping.
 - 📄 Everything is written down: [`DIFFERENCE.md`](./DIFFERENCE.md) (what changed), [`WORKFLOW.md`](./WORKFLOW.md) (how to build/release).
-
----
-
-## 🇷🇺 История `amnezia-client-reconnect`
-
-### С чего началось
-- **2026-07-09** — точка форка: апстрим [`amnezia-client`](https://github.com/amnezia-vpn/amnezia-client), ветка `dev`, коммит `5e70eb20` (v4.9.0.3).
-- **2026-07-10** — репозиторий склонирован и форкнут под одну конкретную проблему: **ночью пропадал интернет, а VPN этого не замечал.** Идея: пусть клиент *раз в N минут пингует список адресов и переподключается, когда они перестают отвечать*.
-
-### Первый функционал (июль 2026)
-- **Auto-reconnect watchdog** — самая первая фича: периодический пинг списка хостов, настраиваемый интервал, условие «все / хотя бы один недоступен», случайный порядок пинга, статус по хостам, *Check now*. Собрана в тот же день (Qt 6.10 через `aqt`, Conan, MSVC), плюс dev-ярлык, чтобы запускался нужный exe.
-- **Кнопка Test под каждым хостом**, **индикатор на главном экране**, **детализация по хостам** — добавлены, как только watchdog заработал по-настоящему.
-- **Live split-tunneling приложений** — приложения добавляются/удаляются при активном VPN без реконнекта (переиспользован существующий IPC `enablePeerTraffic`; служба не менялась).
-- **2026-07-17** — событийный лог поймал реальный баг: реконнект **завис в `Connecting…` на 8 часов**. Итог: **восстановление при зависании** (прервать → пауза → повтор, таймауты в секундах) и **лог с таймстампами** и чекбоксами категорий.
-- **2026-07-24** — **Direct proxy**: локальный прокси, чей трафик идёт *мимо* VPN (helper исключён через split-tunnel драйвер) — для сайтов, закрытых *для иностранных IP*, например `matchtv.ru`. Первый подписанный IFW-установщик.
-
-### Мерж, упаковка, документация (август 2026)
-- **2026-08-17** — всё вышеперечисленное закоммичено (`143284e8` … `97795914`), затем **влит апстрим 5.0.1.1** (51 коммит; конфликтов всего 2: версия и рефактор трея для macOS) — `4862b222`. Установщики `.exe` (IFW) + `.msi` (WiX 4), `DIFFERENCE.md` и mind-map отличий.
-- **2026-08-20** — **Process Recorder**: таймлайн процессов (NEW / EXITED с длительностью, время старта, полный путь, перемотка назад).
-
-### Два прокси и HTTPS (сентябрь 2026)
-- **2026-09-08** — **два локальных прокси** (мимо VPN и *через* VPN — чтобы другой ПК выходил через твой VPN), **логин/пароль**, **allowlist IP**, адрес привязки и **тип HTTPS (TLS)** с автосгенерированным самоподписанным сертификатом — `c26207ab`, `9d4ce4a1`. Документация: `WORKFLOW.md`, `README_certs.md` / `README_certs_RU.md`, этот файл и блок о форке в `README.md`.
-- **2026-09-08, вечер** — первый релиз на GitHub `v5.0.1.1-reconnect-proxy` (установщики переименованы в `AmneziaVPN_Reconnect_*`); руководства `docs/reconnect/SETUP*.md`, `docs/proxy/ARCHITECTURE*.md` с кликабельными ссылками на код; лендинги `index.html` / `index_ru.html` с **интерактивным майндмапом**; `DIFFERENCE.md` разделён на EN + `DIFFERENCE_RU.md`. На странице Direct-прокси — по строке на браузер: **Chrome, Edge, Firefox, Yandex Browser** — с *Launch*, *Copy* и готовой командной строкой — `3334ccbe`, `dc1626d1`. **Иконка трея** стала цветным кругом по состоянию (прежняя «полноцветная иконка» на деле была надписью 150×22 и выглядела пустым квадратом).
-
-### Принципы, которых держались всё время
-- 🔧 **Только клиентская сторона** — служба VPN и драйверы штатные; привилегированные операции идут через существующий IPC.
-- 🧪 Каждая фича проверялась по-настоящему (пинг-проверки, `curl` через прокси, 8-часовое зависание из лога), прежде чем ехать в релиз.
-- 📄 Всё записано: [`DIFFERENCE_RU.md`](./DIFFERENCE_RU.md) (что изменилось), [`WORKFLOW.md`](./WORKFLOW.md) (как собирать и релизить).
