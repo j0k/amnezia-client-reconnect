@@ -37,6 +37,9 @@
   table{border-collapse:collapse;width:100%;font-size:14.5px}
   td,th{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
   th{color:var(--muted);font-weight:600}
+  .q{display:inline-block;margin-left:4px;width:18px;height:18px;line-height:18px;text-align:center;border-radius:50%;border:1px solid var(--accent2);color:var(--accent2);font-size:12px;font-weight:700;cursor:help;position:relative;vertical-align:1px;text-decoration:none}
+  .q:hover::after,.q:focus::after{content:attr(data-tip);position:absolute;left:50%;transform:translateX(-50%);bottom:26px;width:min(360px,80vw);padding:10px 12px;border-radius:8px;background:var(--fg);color:var(--bg);font-size:13px;font-weight:400;line-height:1.45;text-align:left;white-space:normal;z-index:20;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+  .q:focus{outline:none}
   footer{margin-top:48px;color:var(--muted);font-size:13.5px;border-top:1px solid var(--line);padding-top:16px}
 </style>
 </head>
@@ -122,7 +125,7 @@
 <ol>
   <li>Turn it on, set <strong>Bind address</strong> to <code>0.0.0.0</code> (all interfaces) — the home-screen indicator then shows the address to use, e.g. <code>http://192.168.1.10:8900</code>.</li>
   <li><strong>Recommended type: HTTP (CONNECT).</strong> It is the one every client understands: Windows <em>Settings → Network → Proxy</em>, Android/iOS Wi-Fi proxy settings, browsers, <code>curl</code>. SOCKS5 works only in apps that support it explicitly, and the HTTPS (TLS) type needs the self-signed certificate imported on <em>every</em> client and is not accepted by Windows system proxy settings at all. Inside your own LAN the extra TLS layer buys little — use HTTP unless the network itself is untrusted.</li>
-  <li>Restrict who may connect: <strong>Allowed client IPs</strong> (e.g. <code>192.168.1.23, 192.168.1.24</code>) and/or a <strong>login/password</strong>. An unlisted IP is dropped before a single byte is exchanged.</li>
+  <li>Restrict who may connect: <strong>Allowed client IPs</strong> (e.g. <code>192.168.1.23, 192.168.1.24</code>) and/or a <strong>login/password</strong>. An unlisted IP is dropped before a single byte is exchanged.<span class="q" tabindex="0" data-tip="Every request to the proxy has two steps: 1) the TCP connection is accepted and the helper learns the client IP; 2) the client sends its first byte — an HTTP CONNECT, a SOCKS5 greeting or a TLS handshake — and the proxy answers, asks for a password, etc. “Before a single byte” means the IP check sits between step 1 and step 2: if the address is not in the list, the helper closes the connection right after accept(), having read nothing and sent nothing. The outsider gets no 407, no SOCKS reply, no certificate — cannot even tell it is a proxy, let alone guess a password.">?</span></li>
   <li>On the other device: proxy host = your LAN IP, port = <code>8900</code>. Check: <code>curl -x http://192.168.1.10:8900 https://api.ipify.org</code> must print the VPN server's IP.</li>
   <li>Switch on <strong>Log requested hosts</strong> to see who asked for what: <code>[time] NEW  192.168.1.23 -&gt; chat.qwen.ai:443</code>.</li>
 </ol>
