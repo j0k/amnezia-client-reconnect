@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AmneziaVPN Reconnect+Proxy</title>
+<meta name="description" content="Форк клиента AmneziaVPN для Windows: авто-реконнект по пингу, два локальных прокси (мимо VPN и через VPN, SOCKS5/HTTP/HTTPS), live split-tunneling приложений, рекордер процессов.">
+<link rel="alternate" hreflang="en" href="index.html">
+<style>
+  :root{--bg:#f7f7f5;--fg:#1c1c1c;--muted:#5f6368;--card:#fff;--line:#e3e3df;--accent:#e67e22;--accent2:#2980b9;--code:#f0f0ec}
+  @media (prefers-color-scheme:dark){:root{--bg:#131416;--fg:#ececec;--muted:#a3a7ad;--card:#1c1e22;--line:#2c2f35;--code:#22252b}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  a{color:var(--accent2)}
+  .wrap{max-width:960px;margin:0 auto;padding:32px 20px 64px}
+  header{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:24px}
+  .lang{font-size:14px;padding:6px 12px;border:1px solid var(--line);border-radius:999px;text-decoration:none;color:var(--fg);background:var(--card)}
+  h1{font-size:2rem;margin:0 0 6px}
+  .sub{color:var(--muted);margin:0 0 20px;max-width:720px}
+  .badges{display:flex;gap:8px;flex-wrap:wrap;font-size:13px;margin-bottom:28px}
+  .badge{padding:3px 10px;border-radius:999px;background:var(--code);color:var(--muted)}
+  .dl{display:flex;gap:12px;flex-wrap:wrap;margin:0 0 8px}
+  .btn{display:inline-block;padding:12px 18px;border-radius:10px;text-decoration:none;font-weight:600;color:#fff;background:var(--accent)}
+  .btn.alt{background:var(--accent2)}
+  .btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
+  .hint{font-size:13px;color:var(--muted);margin:0 0 36px}
+  h2{font-size:1.25rem;margin:36px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .card h3{margin:0 0 6px;font-size:1.02rem}
+  .card p{margin:0 0 8px;color:var(--muted);font-size:14.5px}
+  .card .links{font-size:14px}
+  ul{padding-left:20px;margin:8px 0}
+  li{margin:4px 0}
+  pre{background:var(--code);border:1px solid var(--line);border-radius:10px;padding:12px 14px;overflow-x:auto;font-size:13.5px}
+  code{font-family:ui-monospace,Consolas,Menlo,monospace}
+  table{border-collapse:collapse;width:100%;font-size:14.5px}
+  td,th{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  th{color:var(--muted);font-weight:600}
+  footer{margin-top:48px;color:var(--muted);font-size:13.5px;border-top:1px solid var(--line);padding-top:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div><strong>🔁 AmneziaVPN Reconnect+Proxy</strong></div>
+  <a class="lang" href="index.html">🇬🇧 English version</a>
+</header>
+
+<h1>AmneziaVPN Reconnect+Proxy</h1>
+<p class="sub">Личный форк официального <a href="https://github.com/amnezia-vpn/amnezia-client">клиента AmneziaVPN</a> (апстрим 5.0.1.1) с дополнительными функциями для <strong>десктопа на Windows</strong>. Изменён только клиент — служба VPN и драйверы штатные.</p>
+<div class="badges">
+  <span class="badge">v5.0.1.1-reconnect-proxy</span><span class="badge">Windows x64</span><span class="badge">подписанные .exe / .msi</span><span class="badge">GPL-3.0</span>
+</div>
+
+<div class="dl">
+  <a class="btn" href="https://github.com/j0k/amnezia-client-reconnect/releases/download/v5.0.1.1-reconnect-proxy/AmneziaVPN_Reconnect_5.0.1.1_windows_x64.exe">⬇ Скачать .exe (102 МБ)</a>
+  <a class="btn alt" href="https://github.com/j0k/amnezia-client-reconnect/releases/download/v5.0.1.1-reconnect-proxy/AmneziaVPN_Reconnect_5.0.1.1_windows_x64.msi">⬇ Скачать .msi (83 МБ)</a>
+  <a class="btn ghost" href="https://github.com/j0k/amnezia-client-reconnect/releases/tag/v5.0.1.1-reconnect-proxy">Все релизы · SHA256SUMS</a>
+</div>
+<p class="hint">Устанавливается как <strong>AmneziaVPN</strong> (то же имя приложения и службы, что у апстрима) — установщик обновит официальный клиент, либо удалите его заранее. Исходники: <a href="https://github.com/j0k/amnezia-client-reconnect">github.com/j0k/amnezia-client-reconnect</a></p>
+
+<h2>✨ Возможности</h2>
+<div class="grid">
+  <div class="card">
+    <h3>🔁 Auto-reconnect watchdog</h3>
+    <p>Раз в <em>N</em> минут пингует список хостов через туннель и переподключается, когда они перестают отвечать. Режим all/any, случайный порядок, кнопка <em>Test</em> у каждого хоста, восстановление при зависании (timeout → пауза → повтор), лог событий с таймстампами. Появился из-за ночных обрывов интернета, которых клиент не замечал.</p>
+    <div class="links">📖 Настройка и какие хосты пинговать: <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/docs/reconnect/SETUP_RU.md">RU</a> / <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/docs/reconnect/SETUP.md">EN</a></div>
+  </div>
+  <div class="card">
+    <h3>🔀 Два локальных прокси</h3>
+    <p><strong>Direct</strong> — мимо VPN с вашим реальным IP (например <code>matchtv.ru</code> из РФ; «два окна браузера — два IP»). <strong>VPN</strong> — через туннель, чтобы другой ПК в локальной сети выходил через ваш VPN. SOCKS5 / HTTP / <strong>HTTPS (TLS)</strong>, адрес привязки, логин/пароль, allowlist IP, лог.</p>
+    <div class="links">🏗 Архитектура со ссылками на код: <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/docs/proxy/ARCHITECTURE_RU.md">RU</a> / <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/docs/proxy/ARCHITECTURE.md">EN</a> · 🔐 Сертификаты: <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/README_certs_RU.md">RU</a> / <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/README_certs.md">EN</a></div>
+  </div>
+  <div class="card">
+    <h3>🧩 Live split-tunneling приложений</h3>
+    <p>Добавляйте и удаляйте приложения при подключённом VPN — без реконнекта. Переиспользован существующий IPC службы; драйвер Windows умеет только исключать.</p>
+  </div>
+  <div class="card">
+    <h3>🎞 Process Recorder</h3>
+    <p>Таймлайн процессов: NEW / EXITED с длительностью работы, время старта, полный путь, перемотка назад, интервал от 0.5 с.</p>
+  </div>
+  <div class="card">
+    <h3>🏠 Индикаторы на главном экране</h3>
+    <p>«Auto-reconnect enabled», «Direct proxy enabled (адрес)» и «Logs» прямо под кнопкой подключения.</p>
+  </div>
+</div>
+
+<h2>📚 Документация</h2>
+<table>
+  <tr><th>Тема</th><th>Русский</th><th>English</th></tr>
+  <tr><td>Обзор / README форка</td><td><a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/README_RU.md">README_RU.md</a></td><td><a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/README.md">README.md</a></td></tr>
+  <tr><td>Настройка Auto-reconnect, какие хосты пинговать и зачем</td><td><a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/docs/reconnect/SETUP_RU.md">docs/reconnect/SETUP_RU.md</a></td><td><a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/docs/reconnect/SETUP.md">docs/reconnect/SETUP.md</a></td></tr>
+  <tr><td>Архитектура локальных прокси (код + mermaid)</td><td><a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/docs/proxy/ARCHITECTURE_RU.md">docs/proxy/ARCHITECTURE_RU.md</a></td><td><a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/docs/proxy/ARCHITECTURE.md">docs/proxy/ARCHITECTURE.md</a></td></tr>
+  <tr><td>Сертификаты HTTPS-прокси</td><td><a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/README_certs_RU.md">README_certs_RU.md</a></td><td><a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/README_certs.md">README_certs.md</a></td></tr>
+  <tr><td>Майндмап (открыть в <a href="https://juri-konoplev.pro/my-mind/">My Mind</a>)</td><td><a href="docs/vpn-amnezia-reconnect_ru.mymind">vpn-amnezia-reconnect_ru.mymind</a></td><td><a href="docs/vpn-amnezia-reconnect_en.mymind">vpn-amnezia-reconnect_en.mymind</a></td></tr>
+  <tr><td>Полный список отличий от апстрима</td><td colspan="2"><a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/DIFFERENCE.md">DIFFERENCE.md</a></td></tr>
+  <tr><td>История форка</td><td colspan="2"><a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/HISTORY.md">HISTORY.md</a> (RU + EN)</td></tr>
+  <tr><td>Сборка, упаковка, подпись, релиз</td><td colspan="2"><a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/WORKFLOW.md">WORKFLOW.md</a></td></tr>
+</table>
+
+<h2>🛑 Остановить приложение и службы из консоли</h2>
+<pre><code>Stop-Process -Name AmneziaVPN -Force
+Stop-Service AmneziaVPN-service      # от администратора
+Stop-Process -Name amnezia-direct-proxy,amnezia-direct-proxy-vpn -Force -ErrorAction SilentlyContinue</code></pre>
+
+<h2>📜 История в двух словах</h2>
+<ul>
+  <li><strong>Июль 2026</strong> — ночные обрывы интернета → watchdog по пингу; затем live split-tunneling, восстановление зависшего реконнекта, лог событий.</li>
+  <li><strong>24 июля</strong> — Direct proxy (мимо VPN). <strong>17 августа</strong> — влит апстрим 5.0.1.1, подписанные .exe/.msi. <strong>20 августа</strong> — Process Recorder.</li>
+  <li><strong>8 сентября</strong> — два прокси, логин/пароль, allowlist IP, тип HTTPS (TLS), документация, этот релиз.</li>
+</ul>
+
+<footer>
+  Форк: <a href="https://github.com/j0k">j0k</a> · апстрим <a href="https://github.com/amnezia-vpn/amnezia-client">amnezia-vpn/amnezia-client</a> · <a href="index.html">🇬🇧 English version of this page</a>
+</footer>
+</div>
+</body>
+</html>

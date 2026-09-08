@@ -136,7 +136,7 @@ cpack -G IFW -D "QTIFWDIR=%QIFW%"
 cpack -G WIX
 ```
 
-Output: `deploy\build\AmneziaVPN_<version>_windows_x64.exe` and `...-x64.msi`.
+Output: `deploy\build\AmneziaVPN_Reconnect_<version>_windows_x64.exe` and `...-x64.msi`.
 
 **Checksums:**
 ```powershell
@@ -181,7 +181,7 @@ $rel = Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/j0k/amn
   -Headers $hdr -Body (@{ tag_name=$tag; name="AmneziaVPN Reconnect+Proxy <version>"; body="<notes>"; draft=$false } | ConvertTo-Json)
 
 # upload each asset
-foreach ($a in @("AmneziaVPN_<version>_windows_x64.exe","AmneziaVPN_<version>_windows_x64.msi","SHA256SUMS.txt")) {
+foreach ($a in @("AmneziaVPN_Reconnect_<version>_windows_x64.exe","AmneziaVPN_Reconnect_<version>_windows_x64.msi","SHA256SUMS.txt")) {
   $u = "https://uploads.github.com/repos/j0k/amnezia-client-reconnect/releases/$($rel.id)/assets?name=$a"
   Invoke-RestMethod -Method Post -Uri $u -Headers ($hdr + @{ "Content-Type"="application/octet-stream" }) `
     -InFile "deploy\build\$a"
