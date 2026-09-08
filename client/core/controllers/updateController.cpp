@@ -56,6 +56,16 @@ void UpdateController::checkForUpdates()
     if (m_updateCheckRunning || !m_appSettingsRepository) {
         return;
     }
+
+    // The gateway request is encrypted with Amnezia's API public key, which only their CI
+    // has (PROD_AGW_PUBLIC_KEY / DEV_AGW_PUBLIC_KEY at build time). A fork built without it
+    // would just log "Gateway request failed, error code: 1105" (ApiMissingAgwPublicKey)
+    // on every start — and its updates come from the fork's own releases anyway.
+    const QByteArray agwKey = m_appSettingsRepository->isDevGatewayEnv() ? DEV_AGW_PUBLIC_KEY : PROD_AGW_PUBLIC_KEY;
+    if (agwKey.trimmed().isEmpty()) {
+        logger.info() << "Update check skipped: built without the API gateway public key";
+        return;
+    }
     m_updateCheckRunning = true;
 
     fetchGatewayUrl();
