@@ -1,0 +1,89 @@
+{
+	"root": {
+		"id": "root0001",
+		"text": "AmneziaVPN Reconnect+Proxy",
+		"notes": "Fork of amnezia-client (upstream 5.0.1.1). Client-side only: the VPN service and drivers are stock. Docs: DIFFERENCE.md, docs/reconnect/SETUP.md, docs/proxy/ARCHITECTURE.md",
+		"layout": "map",
+		"shape": "ellipse",
+		"children": [
+			{
+				"id": "en_rc000",
+				"text": "🔁 Auto-reconnect",
+				"notes": "Settings → Auto-reconnect. Pings a host list every N min through the tunnel; reconnects when they stop answering.",
+				"color": "#e67e22",
+				"children": [
+					{ "id": "en_rc001", "text": "Interval N min (default 10)", "notes": "" },
+					{ "id": "en_rc002", "text": "Mode: all / any host unreachable", "notes": "'all' recommended — one flaky host never triggers a reconnect." },
+					{ "id": "en_rc003", "text": "Hosts: 1.1.1.1, 8.8.8.8 + tunnel gateway", "notes": "Use IPs, not names. The tunnel gateway (10.8.x.1) answers ONLY through the VPN — best indicator. See docs/reconnect/SETUP.md §2." },
+					{ "id": "en_rc004", "text": "Stuck recovery: timeout 120 s → pause 120 s → retry", "notes": "Born from a real 8-hour 'Connecting…' hang." },
+					{ "id": "en_rc005", "text": "Test button, Check now, event log", "notes": "%APPDATA%\\AmneziaVPN\\log\\reconnect-events.log; 4 categories." }
+				]
+			},
+			{
+				"id": "en_px000",
+				"text": "🔀 Local proxies (two)",
+				"notes": "Settings → Local proxies. Same helper exe, two instances; SOCKS5 / HTTP / HTTPS(TLS); bind address, login/password, IP allowlist, log.",
+				"color": "#2980b9",
+				"children": [
+					{ "id": "en_px001", "text": "Direct — bypasses VPN (real IP)", "notes": "matchtv.ru from Russia; 'two browser windows — two IPs'. Default 127.0.0.1:8899." },
+					{ "id": "en_px002", "text": "VPN — through the tunnel", "notes": "Lets another PC/phone on the LAN use your VPN exit. Default 0.0.0.0:8900." },
+					{ "id": "en_px003", "text": "Why Direct bypasses: exclusion by exe path", "notes": "vpnConnection.cpp adds <app dir>\\amnezia-direct-proxy.exe to the split-tunnel exclude list; the VPN instance runs a copy from %APPDATA% (different path → not excluded)." },
+					{ "id": "en_px004", "text": "HTTPS type: self-signed cert, export .cer", "notes": "README_certs.md — trust it on the client (Win/mac/Linux/Firefox/mobile)." }
+				]
+			},
+			{
+				"id": "en_st000",
+				"text": "🧩 Live app split-tunneling",
+				"notes": "Add/remove apps while connected, no reconnect: existing IPC enablePeerTraffic re-sent to the service.",
+				"color": "#27ae60",
+				"children": [
+					{ "id": "en_st001", "text": "Page editable while connected", "notes": "" },
+					{ "id": "en_st002", "text": "Windows: exclude-only (Mullvad driver)", "notes": "'Only forward apps' is not possible with this driver." }
+				]
+			},
+			{
+				"id": "en_pr000",
+				"text": "🎞 Process Recorder",
+				"notes": "Settings → Process recorder. Timeline of running processes.",
+				"color": "#8e44ad",
+				"children": [
+					{ "id": "en_pr001", "text": "Snapshots every X s (0.5+, e.g. 3.33)", "notes": "" },
+					{ "id": "en_pr002", "text": "NEW / EXITED (with run time), full path, slider back in time", "notes": "" }
+				]
+			},
+			{
+				"id": "en_hm000",
+				"text": "🏠 Home screen indicators",
+				"notes": "",
+				"color": "#16a085",
+				"children": [
+					{ "id": "en_hm001", "text": "Auto-reconnect enabled → settings page", "notes": "" },
+					{ "id": "en_hm002", "text": "Direct proxy enabled (address)", "notes": "" },
+					{ "id": "en_hm003", "text": "Logs", "notes": "" }
+				]
+			},
+			{
+				"id": "en_bd000",
+				"text": "🛠 Build & release",
+				"notes": "WORKFLOW.md. Qt 6.10.2 MSVC, Conan, Ninja; helper links OpenSSL.",
+				"color": "#7f8c8d",
+				"children": [
+					{ "id": "en_bd001", "text": ".exe (IFW) + .msi (WiX 4), both signed", "notes": "cpack -G IFW / -G WIX; SIGNTOOL_SUBJECT_NAME." },
+					{ "id": "en_bd002", "text": "Stop from console: Stop-Process AmneziaVPN; Stop-Service AmneziaVPN-service", "notes": "README.md → 🛑 section." }
+				]
+			},
+			{
+				"id": "en_hs000",
+				"text": "📜 History",
+				"notes": "HISTORY.md",
+				"color": "#c0392b",
+				"children": [
+					{ "id": "en_hs001", "text": "Jul 2026: nightly drops → watchdog", "notes": "" },
+					{ "id": "en_hs002", "text": "Jul 24: Direct proxy", "notes": "" },
+					{ "id": "en_hs003", "text": "Aug 17: merged upstream 5.0.1.1, installers", "notes": "" },
+					{ "id": "en_hs004", "text": "Sep 8: two proxies, auth, allowlist, HTTPS", "notes": "" }
+				]
+			}
+		]
+	}
+}

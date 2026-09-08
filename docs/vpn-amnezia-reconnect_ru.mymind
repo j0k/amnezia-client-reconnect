@@ -1,0 +1,89 @@
+{
+	"root": {
+		"id": "root0002",
+		"text": "AmneziaVPN Reconnect+Proxy",
+		"notes": "Форк amnezia-client (апстрим 5.0.1.1). Только клиент: служба VPN и драйверы штатные. Доки: DIFFERENCE.md, docs/reconnect/SETUP_RU.md, docs/proxy/ARCHITECTURE_RU.md",
+		"layout": "map",
+		"shape": "ellipse",
+		"children": [
+			{
+				"id": "ru_rc000",
+				"text": "🔁 Auto-reconnect",
+				"notes": "Settings → Auto-reconnect. Раз в N мин пингует список хостов через туннель; переподключается, когда они перестают отвечать.",
+				"color": "#e67e22",
+				"children": [
+					{ "id": "ru_rc001", "text": "Интервал N мин (по умолч. 10)", "notes": "" },
+					{ "id": "ru_rc002", "text": "Режим: all / any host unreachable", "notes": "Рекомендуется 'all' — один нестабильный хост не вызовет реконнект." },
+					{ "id": "ru_rc003", "text": "Хосты: 1.1.1.1, 8.8.8.8 + шлюз туннеля", "notes": "IP, а не имена. Шлюз туннеля (10.8.x.1) отвечает ТОЛЬКО через VPN — лучший индикатор. См. docs/reconnect/SETUP_RU.md §2." },
+					{ "id": "ru_rc004", "text": "Зависание: timeout 120 с → пауза 120 с → повтор", "notes": "Появилось после реального 8-часового зависания в 'Connecting…'." },
+					{ "id": "ru_rc005", "text": "Кнопка Test, Check now, лог событий", "notes": "%APPDATA%\\AmneziaVPN\\log\\reconnect-events.log; 4 категории." }
+				]
+			},
+			{
+				"id": "ru_px000",
+				"text": "🔀 Локальные прокси (два)",
+				"notes": "Settings → Local proxies. Один helper-exe, два инстанса; SOCKS5 / HTTP / HTTPS(TLS); адрес привязки, логин/пароль, allowlist IP, лог.",
+				"color": "#2980b9",
+				"children": [
+					{ "id": "ru_px001", "text": "Direct — мимо VPN (реальный IP)", "notes": "matchtv.ru из РФ; «два окна браузера — два IP». По умолч. 127.0.0.1:8899." },
+					{ "id": "ru_px002", "text": "VPN — через туннель", "notes": "Другой ПК/телефон в локалке выходит через ваш VPN. По умолч. 0.0.0.0:8900." },
+					{ "id": "ru_px003", "text": "Почему Direct обходит: исключение по пути exe", "notes": "vpnConnection.cpp добавляет <папка приложения>\\amnezia-direct-proxy.exe в список исключений split-tunnel; VPN-инстанс запускает копию из %APPDATA% (другой путь → не исключён)." },
+					{ "id": "ru_px004", "text": "Тип HTTPS: самоподписанный сертификат, экспорт .cer", "notes": "README_certs_RU.md — доверить на клиенте (Win/mac/Linux/Firefox/мобильные)." }
+				]
+			},
+			{
+				"id": "ru_st000",
+				"text": "🧩 Live split-tunneling приложений",
+				"notes": "Добавлять/удалять приложения при подключённом VPN без реконнекта: существующий IPC enablePeerTraffic отправляется службе заново.",
+				"color": "#27ae60",
+				"children": [
+					{ "id": "ru_st001", "text": "Страница редактируется при подключении", "notes": "" },
+					{ "id": "ru_st002", "text": "Windows: только исключение (драйвер Mullvad)", "notes": "«Только выбранные приложения через VPN» с этим драйвером невозможно." }
+				]
+			},
+			{
+				"id": "ru_pr000",
+				"text": "🎞 Process Recorder",
+				"notes": "Settings → Process recorder. Таймлайн процессов.",
+				"color": "#8e44ad",
+				"children": [
+					{ "id": "ru_pr001", "text": "Снимки каждые X с (от 0.5, напр. 3.33)", "notes": "" },
+					{ "id": "ru_pr002", "text": "NEW / EXITED (с длительностью), полный путь, перемотка назад", "notes": "" }
+				]
+			},
+			{
+				"id": "ru_hm000",
+				"text": "🏠 Индикаторы на главном экране",
+				"notes": "",
+				"color": "#16a085",
+				"children": [
+					{ "id": "ru_hm001", "text": "Auto-reconnect enabled → страница настроек", "notes": "" },
+					{ "id": "ru_hm002", "text": "Direct proxy enabled (адрес)", "notes": "" },
+					{ "id": "ru_hm003", "text": "Logs", "notes": "" }
+				]
+			},
+			{
+				"id": "ru_bd000",
+				"text": "🛠 Сборка и релиз",
+				"notes": "WORKFLOW.md. Qt 6.10.2 MSVC, Conan, Ninja; helper линкует OpenSSL.",
+				"color": "#7f8c8d",
+				"children": [
+					{ "id": "ru_bd001", "text": ".exe (IFW) + .msi (WiX 4), оба подписаны", "notes": "cpack -G IFW / -G WIX; SIGNTOOL_SUBJECT_NAME." },
+					{ "id": "ru_bd002", "text": "Остановить из консоли: Stop-Process AmneziaVPN; Stop-Service AmneziaVPN-service", "notes": "README_RU.md → раздел 🛑." }
+				]
+			},
+			{
+				"id": "ru_hs000",
+				"text": "📜 История",
+				"notes": "HISTORY.md",
+				"color": "#c0392b",
+				"children": [
+					{ "id": "ru_hs001", "text": "Июль 2026: ночные обрывы → watchdog", "notes": "" },
+					{ "id": "ru_hs002", "text": "24 июля: Direct proxy", "notes": "" },
+					{ "id": "ru_hs003", "text": "17 авг: влит апстрим 5.0.1.1, установщики", "notes": "" },
+					{ "id": "ru_hs004", "text": "8 сен: два прокси, auth, allowlist, HTTPS", "notes": "" }
+				]
+			}
+		]
+	}
+}
