@@ -189,6 +189,25 @@ PageType {
             DividerType {
                 visible: GC.isDesktop()
             }
+
+            LabelWithButtonType {
+                id: processRecorderButton
+                visible: GC.isDesktop()
+
+                Layout.fillWidth: true
+
+                text: qsTr("Process recorder")
+                descriptionText: qsTr("Record running processes over time to see what launches")
+                rightImageSource: "qrc:/images/controls/chevron-right.svg"
+
+                clickedFunction: function() {
+                    PageController.goToPage(PageEnum.PageSettingsProcessRecorder)
+                }
+            }
+
+            DividerType {
+                visible: GC.isDesktop()
+            }
         }
     }
 }

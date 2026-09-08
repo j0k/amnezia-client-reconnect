@@ -47,6 +47,7 @@ namespace PageLoader
         PageSettingsKillSwitchExceptions,
         PageSettingsReconnect,
         PageSettingsDirectProxy,
+        PageSettingsProcessRecorder,
 
         PageServiceSftpSettings,
         PageServiceTorWebsiteSettings,

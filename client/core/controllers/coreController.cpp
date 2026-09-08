@@ -177,6 +177,9 @@ void CoreController::initControllers()
     m_directProxyController = new DirectProxyController(m_appSettingsRepository, m_connectionController, this);
     setQmlContextProperty("DirectProxyController", m_directProxyController);
 
+    m_processRecorderController = new ProcessRecorderController(this);
+    setQmlContextProperty("ProcessRecorderController", m_processRecorderController);
+
     if (m_engine) {
         m_focusController = new FocusController(m_engine, this);
         setQmlContextProperty("FocusController", m_focusController);

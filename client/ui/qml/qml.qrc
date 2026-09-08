@@ -107,6 +107,7 @@
         <file>Pages2/PageSettingsKillSwitchExceptions.qml</file>
         <file>Pages2/PageSettingsReconnect.qml</file>
         <file>Pages2/PageSettingsDirectProxy.qml</file>
+        <file>Pages2/PageSettingsProcessRecorder.qml</file>
         <file>Pages2/PageSettingsLogging.qml</file>
         <file>Pages2/PageSettingsServerData.qml</file>
         <file>Pages2/PageSettingsServerInfo.qml</file>

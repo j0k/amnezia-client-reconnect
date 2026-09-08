@@ -16,6 +16,7 @@
 #include "ui/controllers/connectionUiController.h"
 #include "ui/controllers/reconnectController.h"
 #include "ui/controllers/directProxyController.h"
+#include "ui/controllers/processRecorderController.h"
 #include "ui/controllers/selfhosted/exportUiController.h"
 #include "core/controllers/selfhosted/exportController.h"
 #include "ui/controllers/qml/focusController.h"
@@ -164,6 +165,7 @@ private:
     ConnectionUiController* m_connectionUiController;
     ReconnectController* m_reconnectController;
     DirectProxyController* m_directProxyController;
+    ProcessRecorderController* m_processRecorderController;
     FocusController* m_focusController;
     PageController* m_pageController;
     InstallUiController* m_installUiController;
