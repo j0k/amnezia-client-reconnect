@@ -37,6 +37,7 @@
         { t: '🏠 Home-screen indicators', c: '#16a085', k: [
           { t: 'Auto-reconnect enabled → settings page' },
           { t: 'Direct proxy enabled (address)' },
+          { t: 'VPN proxy enabled (LAN address)' },
           { t: 'Logs' }
         ] },
         { t: '🛠 Build & release', c: '#7f8c8d', n: 'Qt 6.10.2 MSVC, Conan, Ninja; helper links OpenSSL.', u: GH + 'WORKFLOW.md', k: [
@@ -79,6 +80,7 @@
         { t: '🏠 Индикаторы на главном экране', c: '#16a085', k: [
           { t: 'Auto-reconnect enabled → страница настроек' },
           { t: 'Direct proxy enabled (адрес)' },
+          { t: 'VPN proxy enabled (LAN-адрес)' },
           { t: 'Logs' }
         ] },
         { t: '🛠 Сборка и релиз', c: '#7f8c8d', n: 'Qt 6.10.2 MSVC, Conan, Ninja; helper линкует OpenSSL.', u: GH + 'WORKFLOW.md', k: [

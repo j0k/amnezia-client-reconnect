@@ -80,6 +80,8 @@ A successful connection (automatic or manual) cancels the wait/retry.
 Under "Split tunneling enabled" on the home screen there are status lines (click opens the relevant page):
 - **"Auto-reconnect enabled"** — when the watchdog is on;
 - **"Direct proxy enabled (address)"** — when the direct proxy is on, showing the proxy address;
+- **"VPN proxy enabled (address)"** — when the through-VPN proxy is on; the address shows the LAN IP
+  (what another PC should use) and "· not running" if the helper is not up;
 - **"Logs"** — quick jump to the logs page.
 
 ### 5. Event log (txt with timestamps)

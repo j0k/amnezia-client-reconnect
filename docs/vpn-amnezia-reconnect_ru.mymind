@@ -59,6 +59,7 @@
 				"children": [
 					{ "id": "ru_hm001", "text": "Auto-reconnect enabled → страница настроек", "notes": "" },
 					{ "id": "ru_hm002", "text": "Direct proxy enabled (адрес)", "notes": "" },
+					{ "id": "ru_hm004", "text": "VPN proxy enabled (LAN-адрес)", "notes": "" },
 					{ "id": "ru_hm003", "text": "Logs", "notes": "" }
 				]
 			},

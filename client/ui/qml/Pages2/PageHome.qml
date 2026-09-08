@@ -284,6 +284,45 @@ PageType {
             }
 
             BasicButtonType {
+                id: vpnProxyStatusButton
+                objectName: "vpnProxyStatusButton"
+
+                Layout.alignment: Qt.AlignHCenter | Qt.AlignBottom
+                leftPadding: 16
+                rightPadding: 16
+
+                implicitHeight: 36
+
+                visible: DirectProxyController.vpn.enabled
+
+                defaultColor: AmneziaStyle.color.transparent
+                hoveredColor: AmneziaStyle.color.translucentWhite
+                pressedColor: AmneziaStyle.color.sheerWhite
+                disabledColor: AmneziaStyle.color.mutedGray
+                textColor: AmneziaStyle.color.mutedGray
+                borderWidth: 0
+
+                buttonTextLabel.lineHeight: 20
+                buttonTextLabel.font.pixelSize: 14
+                buttonTextLabel.font.weight: 500
+
+                // The address shows the LAN IP when bound to 0.0.0.0 — what another PC should use.
+                text: qsTr("VPN proxy enabled") + "  (" + DirectProxyController.vpn.address + ")"
+                      + (DirectProxyController.vpn.running ? "" : "  · " + qsTr("not running"))
+
+                leftImageSource: "qrc:/images/controls/share-2.svg"
+                leftImageColor: ""
+                rightImageSource: "qrc:/images/controls/chevron-right.svg"
+
+                Keys.onEnterPressed: this.clicked()
+                Keys.onReturnPressed: this.clicked()
+
+                onClicked: {
+                    PageController.goToPage(PageEnum.PageSettingsDirectProxy)
+                }
+            }
+
+            BasicButtonType {
                 id: logsStatusButton
                 objectName: "logsStatusButton"
 
