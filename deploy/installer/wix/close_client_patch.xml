@@ -8,6 +8,11 @@
                 Description="Closing AmneziaVPN client"
                 TerminateProcess="1"
                 RebootPrompt="no" />
+
+        <!-- CPack's template reuses the previous product's InstallLocation from the registry on a
+             major upgrade, so upgrading over the official client kept C:\Program Files\AmneziaVPN.
+             Always install the fork into its own folder ("Browse" in the wizard still works). -->
+        <SetProperty Id="INSTALL_ROOT" Value="[ProgramFiles64Folder]AmneziaVPN_Reconnect\" After="AppSearch" Sequence="both" />
     </CPackWiXFragment>
 </CPackWiXPatch>
 
