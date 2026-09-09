@@ -43,9 +43,11 @@ set(CPACK_WIX_PRODUCT_ICON          ${CMAKE_SOURCE_DIR}/client/images/app.ico)
 set(CPACK_WIX_CUSTOM_XMLNS          "util=http://wixtoolset.org/schemas/v4/wxs/util")
 set(_AMNEZIA_WIX_PATCH_SERVICE      ${CMAKE_SOURCE_DIR}/deploy/installer/wix/service_install_patch.xml)
 set(_AMNEZIA_WIX_PATCH_CLOSE_APP    ${CMAKE_SOURCE_DIR}/deploy/installer/wix/close_client_patch.xml)
+set(_AMNEZIA_WIX_PATCH_INSTALL_ROOT ${CMAKE_SOURCE_DIR}/deploy/installer/wix/install_root_patch.xml)
 file(TO_CMAKE_PATH                  "${_AMNEZIA_WIX_PATCH_SERVICE}" _AMNEZIA_WIX_PATCH_SERVICE_CMAKE)
 file(TO_CMAKE_PATH                  "${_AMNEZIA_WIX_PATCH_CLOSE_APP}" _AMNEZIA_WIX_PATCH_CLOSE_APP_CMAKE)
-list(APPEND CPACK_WIX_PATCH_FILE    "${_AMNEZIA_WIX_PATCH_SERVICE_CMAKE}" "${_AMNEZIA_WIX_PATCH_CLOSE_APP_CMAKE}")
+file(TO_CMAKE_PATH                  "${_AMNEZIA_WIX_PATCH_INSTALL_ROOT}" _AMNEZIA_WIX_PATCH_INSTALL_ROOT_CMAKE)
+list(APPEND CPACK_WIX_PATCH_FILE    "${_AMNEZIA_WIX_PATCH_SERVICE_CMAKE}" "${_AMNEZIA_WIX_PATCH_CLOSE_APP_CMAKE}" "${_AMNEZIA_WIX_PATCH_INSTALL_ROOT_CMAKE}")
 list(APPEND CPACK_WIX_EXTENSIONS    "WixToolset.Util.wixext")
 
 # === CPack productbuild generator settings ===
