@@ -69,6 +69,9 @@ public slots:
     // the default text editor. Returns the path, or "" on failure.
     QString openSnapshotInEditor();
     void copySnapshotToClipboard();
+    // Same rows as CSV (';' separator, UTF-8 with BOM so Excel opens it directly) to
+    // %APPDATA%/AmneziaVPN/log/processes-<time>.csv; opens it with the associated app.
+    QString exportSnapshotCsv();
 
 signals:
     void recordingChanged();

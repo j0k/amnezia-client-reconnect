@@ -278,6 +278,56 @@ QString ProcessRecorderController::openSnapshotInEditor()
     return path;
 }
 
+namespace {
+    // RFC 4180-style quoting for the ';' separated export.
+    QString csvCell(const QString &v)
+    {
+        if (v.contains(';') || v.contains('"') || v.contains(QLatin1Char('\n'))) {
+            QString q = v;
+            q.replace('"', QStringLiteral("\"\""));
+            return '"' + q + '"';
+        }
+        return v;
+    }
+}
+
+QString ProcessRecorderController::exportSnapshotCsv()
+{
+    const Snapshot *s = currentSnapshot();
+    if (!s) {
+        return {};
+    }
+    const QVariantList rows = processes();
+    QStringList lines;
+    lines << QStringLiteral("snapshot;state;pid;ppid;threads;started;duration;name;path");
+    const QString snap = s->time.toString(QStringLiteral("yyyy-MM-dd HH:mm:ss"));
+    for (const QVariant &v : rows) {
+        const QVariantMap m = v.toMap();
+        const QString state = m.value("exited").toBool() ? QStringLiteral("EXITED")
+                            : m.value("isNew").toBool()  ? QStringLiteral("NEW")
+                                                         : QStringLiteral("RUNNING");
+        lines << QStringList { snap, state, QString::number(m.value("pid").toInt()),
+                               QString::number(m.value("ppid").toInt()), QString::number(m.value("threads").toInt()),
+                               csvCell(m.value("startTime").toString()), csvCell(m.value("duration").toString()),
+                               csvCell(m.value("name").toString()), csvCell(m.value("path").toString()) }
+                     .join(';');
+    }
+
+    const QString dir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + QStringLiteral("/log");
+    QDir().mkpath(dir);
+    const QString path = dir + QStringLiteral("/processes-")
+                         + QDateTime::currentDateTime().toString(QStringLiteral("yyyyMMdd-HHmmss")) + QStringLiteral(".csv");
+    QFile f(path);
+    if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        return {};
+    }
+    f.write("\xEF\xBB\xBF"); // UTF-8 BOM: Excel then reads UTF-8 (and the ';' separator) without the import wizard
+    f.write((lines.join(QStringLiteral("\r\n")) + QStringLiteral("\r\n")).toUtf8());
+    f.close();
+    QDesktopServices::openUrl(QUrl::fromLocalFile(path));
+    return path;
+}
+
 void ProcessRecorderController::copySnapshotToClipboard()
 {
     if (QClipboard *cb = QGuiApplication::clipboard()) {

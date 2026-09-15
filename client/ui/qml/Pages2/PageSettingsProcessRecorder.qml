@@ -218,6 +218,23 @@ PageType {
                     PageController.showNotificationMessage(qsTr("List copied to clipboard"))
                 }
             }
+
+            BasicButtonType {
+                Layout.fillWidth: true
+                implicitHeight: 36
+                defaultColor: AmneziaStyle.color.transparent
+                hoveredColor: AmneziaStyle.color.translucentWhite
+                pressedColor: AmneziaStyle.color.sheerWhite
+                textColor: AmneziaStyle.color.paleGray
+                borderWidth: 1
+
+                text: qsTr("Export .csv")
+                enabled: ProcessRecorderController.snapshotCount > 0
+                clickedFunc: function() {
+                    var path = ProcessRecorderController.exportSnapshotCsv()
+                    PageController.showNotificationMessage(path !== "" ? qsTr("Saved to") + " " + path : qsTr("Could not save the list"))
+                }
+            }
         }
 
         DividerType {}
