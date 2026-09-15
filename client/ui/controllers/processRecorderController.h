@@ -63,6 +63,12 @@ public slots:
     void jumpToLive();
     // Captures one snapshot immediately (also used by the timer).
     void captureNow();
+    // The whole list of the snapshot being viewed (filter / "only new" applied) as plain text.
+    QString snapshotText() const;
+    // Writes snapshotText() to %APPDATA%/AmneziaVPN/log/processes-<time>.txt and opens it in
+    // the default text editor. Returns the path, or "" on failure.
+    QString openSnapshotInEditor();
+    void copySnapshotToClipboard();
 
 signals:
     void recordingChanged();

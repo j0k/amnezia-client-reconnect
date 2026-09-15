@@ -2,6 +2,14 @@
 
 #include <QVariantMap>
 #include <QSet>
+#include <QClipboard>
+#include <QDateTime>
+#include <QDesktopServices>
+#include <QDir>
+#include <QFile>
+#include <QGuiApplication>
+#include <QStandardPaths>
+#include <QUrl>
 
 #if defined(Q_OS_WIN)
 #ifndef WIN32_LEAN_AND_MEAN
@@ -210,6 +218,71 @@ QVariantList ProcessRecorderController::processes() const
         list.append(m);
     }
     return list;
+}
+
+QString ProcessRecorderController::snapshotText() const
+{
+    const Snapshot *s = currentSnapshot();
+    if (!s) {
+        return {};
+    }
+    const QVariantList rows = processes();
+    QStringList lines;
+    lines << QStringLiteral("Process snapshot %1 - %2 processes shown (%3 in snapshot, %4 new)")
+                 .arg(s->time.toString(QStringLiteral("yyyy-MM-dd HH:mm:ss")), QString::number(rows.size()), QString::number(s->procs.size()), QString::number(s->newCount));
+    if (!m_filter.trimmed().isEmpty() || m_onlyNew) {
+        lines << QStringLiteral("Filter: %1%2").arg(m_filter.trimmed(), m_onlyNew ? QStringLiteral("  [only new]") : QString());
+    }
+    lines << QString();
+    lines << QStringLiteral("%1  %2  %3  %4  %5  %6")
+                 .arg(QStringLiteral("STATE"), -7).arg(QStringLiteral("PID"), 6).arg(QStringLiteral("PPID"), 6)
+                 .arg(QStringLiteral("THR"), 4).arg(QStringLiteral("STARTED"), -19).arg(QStringLiteral("NAME / PATH"));
+    for (const QVariant &v : rows) {
+        const QVariantMap m = v.toMap();
+        const QString state = m.value("exited").toBool() ? QStringLiteral("EXITED")
+                            : m.value("isNew").toBool()  ? QStringLiteral("NEW")
+                                                         : QString();
+        QString tail = m.value("name").toString();
+        const QString path = m.value("path").toString();
+        if (!path.isEmpty() && path != tail) {
+            tail += QStringLiteral("    ") + path;
+        }
+        if (m.value("exited").toBool() && !m.value("duration").toString().isEmpty()) {
+            tail += QStringLiteral("    (ran %1)").arg(m.value("duration").toString());
+        }
+        lines << QStringLiteral("%1  %2  %3  %4  %5  %6")
+                     .arg(state, -7).arg(m.value("pid").toInt(), 6).arg(m.value("ppid").toInt(), 6)
+                     .arg(m.value("threads").toInt(), 4).arg(m.value("startTime").toString(), -19).arg(tail);
+    }
+    return lines.join(QLatin1Char('\n')) + QLatin1Char('\n');
+}
+
+QString ProcessRecorderController::openSnapshotInEditor()
+{
+    const QString text = snapshotText();
+    if (text.isEmpty()) {
+        return {};
+    }
+    const QString dir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + QStringLiteral("/log");
+    QDir().mkpath(dir);
+    const QString path = dir + QStringLiteral("/processes-")
+                         + QDateTime::currentDateTime().toString(QStringLiteral("yyyyMMdd-HHmmss")) + QStringLiteral(".txt");
+    QFile f(path);
+    if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        return {};
+    }
+    f.write("\xEF\xBB\xBF"); // UTF-8 BOM: Notepad shows paths with non-ASCII characters correctly
+    f.write(text.toUtf8());
+    f.close();
+    QDesktopServices::openUrl(QUrl::fromLocalFile(path));
+    return path;
+}
+
+void ProcessRecorderController::copySnapshotToClipboard()
+{
+    if (QClipboard *cb = QGuiApplication::clipboard()) {
+        cb->setText(snapshotText());
+    }
 }
 
 void ProcessRecorderController::start()

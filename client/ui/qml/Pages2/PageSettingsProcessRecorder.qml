@@ -175,6 +175,51 @@ PageType {
             }
         }
 
+        //
+        // Whole list outside the app: open as a text file / copy
+        //
+        RowLayout {
+            Layout.fillWidth: true
+            Layout.topMargin: 8
+            Layout.leftMargin: 16
+            Layout.rightMargin: 16
+            spacing: 12
+
+            BasicButtonType {
+                Layout.fillWidth: true
+                implicitHeight: 36
+                defaultColor: AmneziaStyle.color.transparent
+                hoveredColor: AmneziaStyle.color.translucentWhite
+                pressedColor: AmneziaStyle.color.sheerWhite
+                textColor: AmneziaStyle.color.paleGray
+                borderWidth: 1
+
+                text: qsTr("Open whole list in editor")
+                enabled: ProcessRecorderController.snapshotCount > 0
+                clickedFunc: function() {
+                    var path = ProcessRecorderController.openSnapshotInEditor()
+                    PageController.showNotificationMessage(path !== "" ? qsTr("Saved to") + " " + path : qsTr("Could not save the list"))
+                }
+            }
+
+            BasicButtonType {
+                Layout.fillWidth: true
+                implicitHeight: 36
+                defaultColor: AmneziaStyle.color.transparent
+                hoveredColor: AmneziaStyle.color.translucentWhite
+                pressedColor: AmneziaStyle.color.sheerWhite
+                textColor: AmneziaStyle.color.paleGray
+                borderWidth: 1
+
+                text: qsTr("Copy list")
+                enabled: ProcessRecorderController.snapshotCount > 0
+                clickedFunc: function() {
+                    ProcessRecorderController.copySnapshotToClipboard()
+                    PageController.showNotificationMessage(qsTr("List copied to clipboard"))
+                }
+            }
+        }
+
         DividerType {}
     }
 
