@@ -30,13 +30,13 @@
 <div class="two">
 <div>
 <p>Файл <span class="ok">подписан</span> (Authenticode, SHA-256, таймстамп Sectigo — настоящий), но сертификат <b>самоподписанный</b>:</p>
-<pre>Subject: CN=Juri Konoplev
-Issuer:  CN=Juri Konoplev          ← Issuer = Subject
-Valid:   2026-07-19 .. 2031-07-19
+<pre>Subject: CN=Juri J. Konoplev (juri-konoplev.pro, github.com/j0k) live like a dance
+Issuer:  CN=Juri J. Konoplev (juri-konoplev.pro, github.com/j0k) live like a dance   ← Issuer = Subject
+Valid:   2026-09-24 .. 2031-09-24
 EKU:     Code Signing
 Status:  A certificate chain processed, but terminated
          in a root certificate which is not trusted</pre>
-<p>Ни одно доверенное хранилище Windows (Root / Trusted Publishers) его не содержит — даже на машине сборки. Поэтому Windows показывает <span class="bad">Publisher: Unknown publisher</span>.</p>
+<p>Пока сертификат не лежит в доверенных хранилищах Windows (Root / Trusted Publishers), Windows показывает <span class="bad">Publisher: Unknown publisher</span>.</p>
 </div>
 <div>
 <div class="box">
@@ -59,30 +59,30 @@ $s.TimeStamperCertificate.Subject
 signtool verify /pa /v "C:\path\AmneziaVPN_Reconnect_5.0.1.1_windows_x64.exe"
 
 # Что лежит в хранилищах
-Get-ChildItem Cert:\LocalMachine\Root, Cert:\LocalMachine\TrustedPublisher | Where-Object Subject -like '*Juri Konoplev*'</pre>
+Get-ChildItem Cert:\LocalMachine\Root, Cert:\LocalMachine\TrustedPublisher | Where-Object Subject -like '*Juri J. Konoplev*'</pre>
 <p class="small">Статусы: <code>Valid</code> — цепочка доверена; <code>UnknownError</code> + «terminated in a root certificate which is not trusted» — самоподписанный/недоверенный корень; <code>NotSigned</code> — подписи нет; <code>HashMismatch</code> — файл изменён после подписи.</p>
 
 <h2>3. Вариант A — доверить свой сертификат (бесплатно, только «свои» машины)</h2>
-<p>Публичную часть сертификата (<code>.cer</code>, без ключа) импортировать в <b>Trusted Root Certification Authorities</b> и <b>Trusted Publishers</b> на каждом ПК, где ставится программа. После этого Authenticode = <span class="ok">Valid</span>, в UAC и свойствах файла появляется «Publisher: Juri Konoplev». <span class="warn">SmartScreen на чужих ПК по-прежнему может ругаться</span> (репутации нет).</p>
+<p>Публичную часть сертификата (<code>.cer</code>, без ключа) импортировать в <b>Trusted Root Certification Authorities</b> и <b>Trusted Publishers</b> на каждом ПК, где ставится программа. После этого Authenticode = <span class="ok">Valid</span>, в UAC и свойствах файла появляется «Publisher: Juri J. Konoplev (juri-konoplev.pro, github.com/j0k) live like a dance». <span class="warn">SmartScreen на чужих ПК по-прежнему может ругаться</span> (репутации нет).</p>
 <h3>3.1 Экспорт .cer с машины сборки (один раз)</h3>
 <pre># из подписанного файла (ключ не нужен)
 $c = (Get-AuthenticodeSignature 'D:\git\amnezia-client-reconnect\deploy\build\AmneziaVPN_Reconnect_5.0.1.1_windows_x64.exe').SignerCertificate
-Export-Certificate -Cert $c -FilePath 'D:\git\amnezia-client-reconnect\deploy\certs\Juri_Konoplev_codesign.cer'   # DER, публичная часть
-# или из хранилища: Get-ChildItem Cert:\CurrentUser\My | Where-Object Subject -eq 'CN=Juri Konoplev' | Export-Certificate -FilePath ...</pre>
+Export-Certificate -Cert $c -FilePath 'D:\git\amnezia-client-reconnect\deploy\certs\Juri_J_Konoplev_codesign.cer'   # DER, публичная часть
+# или из хранилища: Get-ChildItem Cert:\CurrentUser\My | Where-Object Subject -eq 'CN=Juri J. Konoplev (juri-konoplev.pro, github.com/j0k) live like a dance' | Export-Certificate -FilePath ...</pre>
 <h3>3.2 Импорт на целевой машине (PowerShell от администратора)</h3>
-<pre>Import-Certificate -FilePath .\Juri_Konoplev_codesign.cer -CertStoreLocation Cert:\LocalMachine\Root
-Import-Certificate -FilePath .\Juri_Konoplev_codesign.cer -CertStoreLocation Cert:\LocalMachine\TrustedPublisher
+<pre>Import-Certificate -FilePath .\Juri_J_Konoplev_codesign.cer -CertStoreLocation Cert:\LocalMachine\Root
+Import-Certificate -FilePath .\Juri_J_Konoplev_codesign.cer -CertStoreLocation Cert:\LocalMachine\TrustedPublisher
 # то же через certutil:
-certutil -addstore Root .\Juri_Konoplev_codesign.cer
-certutil -addstore TrustedPublisher .\Juri_Konoplev_codesign.cer
+certutil -addstore Root .\Juri_J_Konoplev_codesign.cer
+certutil -addstore TrustedPublisher .\Juri_J_Konoplev_codesign.cer
 # проверка:
 (Get-AuthenticodeSignature .\AmneziaVPN_Reconnect_5.0.1.1_windows_x64.exe).Status    # → Valid</pre>
-<p class="small">GUI: двойной клик по .cer → «Установить сертификат» → «Локальный компьютер» → «Поместить все сертификаты в следующее хранилище» → «Доверенные корневые центры сертификации»; повторить для «Доверенные издатели». Удалить: <code>certutil -delstore Root "Juri Konoplev"</code>.</p>
+<p class="small">GUI: двойной клик по .cer → «Установить сертификат» → «Локальный компьютер» → «Поместить все сертификаты в следующее хранилище» → «Доверенные корневые центры сертификации»; повторить для «Доверенные издатели». Удалить: <code>certutil -delstore Root "Juri J. Konoplev (juri-konoplev.pro, github.com/j0k) live like a dance"</code>.</p>
 <h3>3.3 Что делает и чего не делает</h3>
 <table>
 <tr><th></th><th>До (сейчас)</th><th>После импорта .cer</th></tr>
-<tr><td>Свойства файла → Цифровые подписи</td><td>«Этот сертификат недействителен»</td><td class="ok">«Подпись действительна», Juri Konoplev</td></tr>
-<tr><td>UAC (запуск от администратора)</td><td>жёлтый, Unknown publisher</td><td class="ok">синий, Publisher: Juri Konoplev</td></tr>
+<tr><td>Свойства файла → Цифровые подписи</td><td>«Этот сертификат недействителен»</td><td class="ok">«Подпись действительна», Juri J. Konoplev (juri-konoplev.pro, github.com/j0k) live like a dance</td></tr>
+<tr><td>UAC (запуск от администратора)</td><td>жёлтый, Unknown publisher</td><td class="ok">синий, Publisher: Juri J. Konoplev (juri-konoplev.pro, github.com/j0k) live like a dance</td></tr>
 <tr><td>SmartScreen на этой машине</td><td>«Windows protected your PC»</td><td class="warn">может остаться — нажать «More info → Run anyway»</td></tr>
 <tr><td>SmartScreen на чужой машине</td><td>«Windows protected your PC»</td><td class="bad">без изменений (нет репутации)</td></tr>
 </table>
@@ -117,7 +117,7 @@ certutil -addstore TrustedPublisher .\Juri_Konoplev_codesign.cer
 <h2>6. Итог — что выбрать</h2>
 <table>
 <tr><th>Ситуация</th><th>Действие</th></tr>
-<tr><td>Ставлю на свои 2–3 ПК</td><td><b>A</b>: разложить <code>Juri_Konoplev_codesign.cer</code> рядом с установщиками, импортировать в Root + TrustedPublisher; на синем экране — Run anyway.</td></tr>
+<tr><td>Ставлю на свои 2–3 ПК</td><td><b>A</b>: разложить <code>Juri_J_Konoplev_codesign.cer</code> рядом с установщиками, импортировать в Root + TrustedPublisher; на синем экране — Run anyway.</td></tr>
 <tr><td>Раздаю коллегам в локалке</td><td><b>A</b> + положить .cer и эту шпаргалку на витрину :9010; либо <b>Certum OSS</b> (дёшево, Publisher сразу).</td></tr>
 <tr><td>Публичный релиз без предупреждений</td><td><b>Azure Trusted Signing</b> (быстрее всего снимает SmartScreen) или <b>EV</b> (нужно юрлицо).</td></tr>
 </table>
