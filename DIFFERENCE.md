@@ -172,7 +172,9 @@ name, PID, PPID, threads, **full path**, **start time**. Marks **NEW** (appeared
 snapshot) and **EXITED** (finished — with its **run time**). Clicking a row expands the details +
 **Copy path**. The **time slider** scrubs through history (LIVE / rewind), filter by name/path/PID,
 "only new" toggle. History — up to 900 snapshots. Handy to see what exactly gets launched
-(e.g. which exes to add to split-tunnel).
+(e.g. which exes to add to split-tunnel). The whole viewed snapshot can be taken out of the app:
+**Open whole list in editor** (aligned text table in `%APPDATA%/AmneziaVPN/log/processes-<time>.txt`),
+**Copy list** (clipboard) and **Export .csv** (`;` separated, UTF-8 BOM + CRLF — Excel opens it directly).
 
 ---
 
