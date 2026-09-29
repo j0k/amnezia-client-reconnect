@@ -76,6 +76,10 @@ class ControllerImpl : public QObject {
                  const QDateTime& connectionTimestamp = QDateTime());
   void disconnected();
 
+  // Fork: the daemon brought the tunnel up but could not start the split-tunnel driver
+  // (DaemonError code). The connection stays up without app exclusions.
+  void splitTunnelUnavailable(int errorCode);
+
   // This method should be emitted after a checkStatus() call.
   // "serverIpv4Gateway" is the current VPN tunnel gateway.
   // "deviceIpv4Address" is the address of the VPN client.

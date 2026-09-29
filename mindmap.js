@@ -6,7 +6,7 @@
   'use strict';
 
   var GH = 'https://github.com/j0k/amnezia-client-reconnect/blob/dev/';
-  var REL = 'https://github.com/j0k/amnezia-client-reconnect/releases/tag/v5.0.1.1-reconnect-proxy';
+  var REL = 'https://github.com/j0k/amnezia-client-reconnect/releases/tag/v5.1.1_2';
 
   var DATA = {
     en: {

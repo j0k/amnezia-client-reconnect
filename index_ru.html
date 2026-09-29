@@ -51,23 +51,23 @@
 </header>
 
 <h1>AmneziaVPN Reconnect+Proxy</h1>
-<p class="sub">Личный форк официального <a href="https://github.com/amnezia-vpn/amnezia-client">клиента AmneziaVPN</a> (апстрим 5.0.1.1) с дополнительными функциями для <strong>десктопа на Windows</strong>. Изменён только клиент — служба VPN и драйверы штатные.</p>
+<p class="sub">Личный форк официального <a href="https://github.com/amnezia-vpn/amnezia-client">клиента AmneziaVPN</a> (версия форка 5.1.1_2, база апстрима 5.0.1.1) с дополнительными функциями для <strong>десктопа на Windows</strong>. Изменён клиент плюс две небольшие правки в службе Windows (перерегистрация драйвера split-tunnel, нефатальный сбой split-tunnel); драйверы штатные.</p>
 <div class="badges">
-  <span class="badge">v5.0.1.1-reconnect-proxy</span><span class="badge">Windows x64</span><span class="badge">подписанные .exe / .msi</span><span class="badge">GPL-3.0</span>
+  <span class="badge">v5.1.1_2</span><span class="badge">Windows x64</span><span class="badge">подписанные .exe / .msi</span><span class="badge">GPL-3.0</span>
 </div>
 
 <div class="dl">
-  <a class="btn" href="https://github.com/j0k/amnezia-client-reconnect/releases/download/v5.0.1.1-reconnect-proxy/AmneziaVPN_Reconnect_5.0.1.1_windows_x64.exe">⬇ Скачать .exe (102 МБ)</a>
-  <a class="btn alt" href="https://github.com/j0k/amnezia-client-reconnect/releases/download/v5.0.1.1-reconnect-proxy/AmneziaVPN_Reconnect_5.0.1.1_windows_x64.msi">⬇ Скачать .msi (83 МБ)</a>
-  <a class="btn ghost" href="https://github.com/j0k/amnezia-client-reconnect/releases/tag/v5.0.1.1-reconnect-proxy">Все релизы · SHA256SUMS</a>
+  <a class="btn" href="https://github.com/j0k/amnezia-client-reconnect/releases/download/v5.1.1_2/AmneziaVPN_Reconnect_5.1.1_2_windows_x64.exe">⬇ Скачать .exe (102 МБ)</a>
+  <a class="btn alt" href="https://github.com/j0k/amnezia-client-reconnect/releases/download/v5.1.1_2/AmneziaVPN_Reconnect_5.1.1_2_windows_x64.msi">⬇ Скачать .msi (83 МБ)</a>
+  <a class="btn ghost" href="https://github.com/j0k/amnezia-client-reconnect/releases/tag/v5.1.1_2">Все релизы · SHA256SUMS</a>
 </div>
 <p class="hint">Ставится в <code>C:\Program Files\AmneziaVPN_Reconnect</code> как <strong>AmneziaVPN</strong> (те же имена exe и службы, что у апстрима, поэтому вместе они работать не могут) — официальный клиент из <code>C:\Program Files\AmneziaVPN</code> установщик сначала удалит. Исходники: <a href="https://github.com/j0k/amnezia-client-reconnect">github.com/j0k/amnezia-client-reconnect</a></p>
 
 <h2>🔐 Контрольные суммы файлов релиза</h2>
 <table>
   <tr><th>Файл</th><th>Размер</th><th>CRC32</th><th>SHA-256</th></tr>
-  <tr><td><code>AmneziaVPN_Reconnect_5.0.1.1_windows_x64.exe</code></td><td>107 401 832 Б</td><td><code>2983C6C5</code></td><td><code style="word-break:break-all">693809395d09e9f623a10cac8ecdbf1c472ad33c0576dde76e632440e4585606</code></td></tr>
-  <tr><td><code>AmneziaVPN_Reconnect_5.0.1.1_windows_x64.msi</code></td><td>86 990 848 Б</td><td><code>015ECFE0</code></td><td><code style="word-break:break-all">a07914661e4d99ba9c2a21d1fdfd062ea94193a65bf47f9f92b2c50eaf1168b3</code></td></tr>
+  <tr><td><code>AmneziaVPN_Reconnect_5.1.1_2_windows_x64.exe</code></td><td>107 401 832 Б</td><td><code>2983C6C5</code></td><td><code style="word-break:break-all">693809395d09e9f623a10cac8ecdbf1c472ad33c0576dde76e632440e4585606</code></td></tr>
+  <tr><td><code>AmneziaVPN_Reconnect_5.1.1_2_windows_x64.msi</code></td><td>86 990 848 Б</td><td><code>015ECFE0</code></td><td><code style="word-break:break-all">a07914661e4d99ba9c2a21d1fdfd062ea94193a65bf47f9f92b2c50eaf1168b3</code></td></tr>
 </table>
 <p class="hint">Проверка в Windows: <code>certutil -hashfile &lt;файл&gt; SHA256</code>; CRC32 — например 7-Zip → <em>CRC SHA</em>, или <code>python -c "import zlib,sys;print('%08X'%(zlib.crc32(open(sys.argv[1],'rb').read())&amp;0xFFFFFFFF))" &lt;файл&gt;</code>. Те же SHA-256 лежат в <code>SHA256SUMS.txt</code> в релизе.</p>
 
@@ -86,7 +86,7 @@
 <p>📄 Документация: <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/DIFFERENCE_RU.md">DIFFERENCE</a>, <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/WORKFLOW.md">WORKFLOW</a>, README_certs <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/README_certs_RU.md">RU</a> / <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/README_certs.md">EN</a>.</p>
 <p><strong>➕ Что сделано после этого (8 сентября 2026):</strong></p>
 <ul>
-  <li>🚀 Первый релиз на GitHub <code>v5.0.1.1-reconnect-proxy</code>; установщики переименованы в <code>AmneziaVPN_Reconnect_*</code>, оба подписаны.</li>
+  <li>🚀 Первый релиз на GitHub <code>v5.1.1_2</code>; установщики переименованы в <code>AmneziaVPN_Reconnect_*</code>, оба подписаны.</li>
   <li>📚 Руководства с кликабельными ссылками на код: <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/docs/reconnect/SETUP_RU.md">docs/reconnect/SETUP</a> (какие хосты пинговать и зачем) и <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/docs/proxy/ARCHITECTURE_RU.md">docs/proxy/ARCHITECTURE</a> (как устроены прокси, с диаграммами); <code>DIFFERENCE.md</code> и <code>HISTORY.md</code> разделены на EN + RU.</li>
   <li>🧠 Эти лендинги с интерактивным майндмапом (и файлы <code>.mymind</code> для My Mind).</li>
   <li>🌐 Страница Direct-прокси: по строке на браузер — <strong>Chrome, Edge, Firefox, Yandex Browser</strong> — с <em>Launch</em>, <em>Copy</em> и готовой командой PowerShell (текст выделяется); для Firefox профиль генерируется автоматически.</li>
@@ -131,6 +131,16 @@
   <li>Включите <strong>Log requested hosts</strong>, чтобы видеть, кто куда обращался: <code>[время] NEW  192.168.1.23 -&gt; chat.qwen.ai:443</code>.</li>
 </ol>
 <p class="hint">Брандмауэр Windows должен разрешить входящий TCP 8900 для <code>amnezia-direct-proxy-vpn.exe</code> (Windows спросит при первом старте). Подробности и код: <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/docs/proxy/ARCHITECTURE_RU.md">docs/proxy/ARCHITECTURE_RU.md</a>.</p>
+
+<h2>🩺 Диагностика: реально подключён, а клиент показывает Disconnected (после установки поверх официального клиента)</h2>
+<p><strong>Симптом.</strong> Нажимаешь Connect, кнопка возвращается в <em>Connect</em>, но сайты показывают IP VPN-сервера; в логе клиента <code>Parse command: backendFailure … {"errorCode":2}</code>, затем <code>disconnected</code>; в системном журнале Windows (<em>System</em>) событие 7000: <em>The AmneziaVPNSplitTunnel service failed to start … The system cannot find the file specified</em>.</p>
+<p><strong>Причина.</strong> Драйвер split-tunnel (<code>mullvad-split-tunnel.sys</code>) демон VPN регистрирует как службу Windows <code>AmneziaVPNSplitTunnel</code> с <em>полным путём</em> к .sys в папке приложения. У официального клиента это <code>C:\Program Files\AmneziaVPN\</code>, форк ставится в <code>C:\Program Files\AmneziaVPN_Reconnect\</code>. Апгрейд удалил старую папку, а регистрация службы осталась со старым путём → драйвер не стартует → демон сообщает <em>split tunnel init failure</em> → клиент показывает Disconnected, хотя уже поднятый WireGuard-интерфейс продолжает гнать трафик. Сборки с 29.09.2026 сами находят устаревшую регистрацию и перерегистрируют драйвер, а установщики её удаляют; на более старой сборке — руками:</p>
+<pre>sc.exe stop   AmneziaVPNSplitTunnel        # остановить драйвер, если загружен (если STOPPED — ничего не делает)
+sc.exe delete AmneziaVPNSplitTunnel        # удалить регистрацию службы = ключ реестра
+                                           # HKLM\SYSTEM\CurrentControlSet\Services\AmneziaVPNSplitTunnel
+Restart-Service AmneziaVPN-service -Force  # перезапустить демон: он заново регистрирует драйвер из своей папки</pre>
+<p class="hint">Выполнять в PowerShell <strong>от администратора</strong> (Win+X → Терминал (Администратор), либо <code>Start-Process powershell -Verb RunAs</code>). Потом нажать Connect. Проверка: <code>sc.exe qc AmneziaVPNSplitTunnel</code> должен показать <code>BINARY_PATH_NAME : \??\C:\Program Files\AmneziaVPN_Reconnect\mullvad-split-tunnel.sys</code>, а <code>sc.exe query AmneziaVPNSplitTunnel</code> → <code>STATE : 4 RUNNING</code>.</p>
+<p><strong>Что такое SCM.</strong> <em>Service Control Manager</em> — часть Windows, которая хранит список служб и драйверов и запускает/останавливает их. Каждая служба, включая драйвер режима ядра (это просто служба типа <code>KERNEL_DRIVER</code>), — это ключ <code>HKLM\SYSTEM\CurrentControlSet\Services\&lt;имя&gt;</code> с <code>ImagePath</code> (exe или .sys), <code>Start</code> (auto/manual/disabled) и <code>Type</code>. <code>sc.exe</code> — консольный клиент SCM: <code>sc qc</code> показывает регистрацию, <code>sc query</code> — состояние, <code>sc create / delete / start / stop</code> меняют её; то же самое доступно в <code>services.msc</code> и из PowerShell (<code>Get-Service</code>, <code>Restart-Service</code>). Префикс <code>\??\</code> в пути — нотация NT object manager для Win32-пути, так задаются образы драйверов.</p>
 
 <h2>🧠 Интерактивный майндмап</h2>
 <p class="hint" style="margin-bottom:12px">Клик по ветке раскрывает её, наведение показывает детали, ↗ открывает документ. Та же карта для <a href="https://juri-konoplev.pro/my-mind/">My Mind</a>: <a href="docs/vpn-amnezia-reconnect_ru.mymind">RU</a> / <a href="docs/vpn-amnezia-reconnect_en.mymind">EN</a>.</p>

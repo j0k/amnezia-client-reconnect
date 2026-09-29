@@ -1,5 +1,7 @@
 #include "connectionUiController.h"
 
+#include <QDebug>
+
 #if defined(Q_OS_ANDROID) || defined(Q_OS_IOS) || defined(MACOS_NE)
     #include <QGuiApplication>
 #else
@@ -19,6 +21,7 @@ ConnectionUiController::ConnectionUiController(ConnectionController* connectionC
       m_serversController(serversController)
 {
     connect(m_connectionController, &ConnectionController::connectionStateChanged, this, &ConnectionUiController::onConnectionStateChanged);
+    connect(m_connectionController, &ConnectionController::splitTunnelUnavailable, this, &ConnectionUiController::onSplitTunnelUnavailable);
 
     connect(this, &ConnectionUiController::connectButtonClicked, this, &ConnectionUiController::toggleConnection, Qt::QueuedConnection);
 
@@ -51,9 +54,26 @@ ErrorCode ConnectionUiController::getLastConnectionError()
     return m_connectionController->lastConnectionError();
 }
 
+void ConnectionUiController::onSplitTunnelUnavailable(int errorCode)
+{
+    qWarning() << "Split tunneling unavailable, daemon error code" << errorCode;
+    if (!m_splitTunnelUnavailable) {
+        m_splitTunnelUnavailable = true;
+        emit splitTunnelUnavailableChanged();
+    }
+}
+
 void ConnectionUiController::onConnectionStateChanged(Vpn::ConnectionState state)
 {
     m_state = state;
+
+    // The daemon reports the split-tunnel failure before "connected", so keep the flag across
+    // the Connecting -> Connected transition and clear it whenever a new attempt or a
+    // disconnect starts.
+    if (state != Vpn::ConnectionState::Connected && m_splitTunnelUnavailable) {
+        m_splitTunnelUnavailable = false;
+        emit splitTunnelUnavailableChanged();
+    }
 
     m_isConnected = false;
     m_connectionStateText = tr("Connecting...");

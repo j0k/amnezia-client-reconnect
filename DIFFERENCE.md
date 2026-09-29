@@ -11,6 +11,13 @@ All changes are **client-side only** (`client/`) plus one new standalone helper 
 
 ## Changelog
 
+### 5.1.1_2 (2026-09-29)
+- **Version scheme** `<line>_<fork release>`: `AMNEZIAVPN_VERSION 5.1.1.2` → installers `AmneziaVPN_Reconnect_5.1.1_2_windows_x64.*`, tag `v5.1.1_2`; upstream base stays 5.0.1.1.
+- **Install over the official client**: the `AmneziaVPNSplitTunnel` kernel service kept the old `C:\Program Files\AmneziaVPN\mullvad-split-tunnel.sys` path → the driver failed to start (System event 7000), every connect ended in `backendFailure 2` and the client showed *Disconnected* while the WireGuard tunnel stayed up. Now `WindowsSplitTunnel::create()` re-registers the driver when the registered path is stale; `post_install.cmd`, `post_uninstall.cmd` and the WiX `ServiceControl` remove the old registration.
+- **Split-tunnel failure no longer tears the tunnel down** (`WindowsDaemon::run`): the connection stays up, the daemon reports `backendFailure`, the client keeps *Connected* and shows **Split tunneling unavailable — reconnect to retry** (home screen, amber; the Direct-proxy line adds *not bypassing VPN!*). `Daemon::activate()` rolls a half-configured interface back if any *other* step fails.
+- Process Recorder: *Open whole list in editor*, *Copy list*, *Export .csv*.
+- Code signing: new self-signed certificate `CN=Juri J. Konoplev (juri-konoplev.pro, github.com/j0k) live like a dance`, `docs/code-signing-cheatsheet.pdf`, public `docs/Juri_J_Konoplev_codesign.cer`.
+
 ### Process Recorder, two proxies, HTTPS (2026-09-08; base — upstream 5.0.1.1)
 - **Process Recorder** (Settings → Connection → Process recorder): snapshots of all processes every N seconds (configurable, e.g. `3.33`), **NEW** / **EXITED with run time** marks, click to expand (PID/PPID/threads/start time/full path + Copy path), time slider (LIVE / scrub back), filter, "only new".
 - **Two local proxies** instead of one: **Direct** (bypasses the VPN, real IP) and **VPN** (through the tunnel — another PC exits through your VPN). Each has a bind address (`127.0.0.1` / `0.0.0.0` / IP), port, **optional login/password** (HTTP 407 Basic + SOCKS5 RFC 1929), **client IP allowlist**, log. The VPN proxy runs from a separate copy of the helper in `%APPDATA%` (otherwise split-tunnel would exclude both).

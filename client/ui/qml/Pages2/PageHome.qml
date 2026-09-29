@@ -247,6 +247,45 @@ PageType {
             }
 
             BasicButtonType {
+                id: splitTunnelWarningButton
+                objectName: "splitTunnelWarningButton"
+
+                Layout.alignment: Qt.AlignHCenter | Qt.AlignBottom
+                leftPadding: 16
+                rightPadding: 16
+
+                implicitHeight: 36
+
+                visible: ConnectionController.splitTunnelUnavailable
+
+                defaultColor: AmneziaStyle.color.transparent
+                hoveredColor: AmneziaStyle.color.translucentWhite
+                pressedColor: AmneziaStyle.color.sheerWhite
+                disabledColor: AmneziaStyle.color.mutedGray
+                textColor: AmneziaStyle.color.goldenApricot
+                borderWidth: 0
+
+                buttonTextLabel.lineHeight: 20
+                buttonTextLabel.font.pixelSize: 14
+                buttonTextLabel.font.weight: 500
+
+                // Connected, but the split-tunnel driver did not start: app exclusions and the
+                // Direct proxy go through the VPN until the next connect.
+                text: qsTr("Split tunneling unavailable - reconnect to retry")
+
+                leftImageSource: "qrc:/images/controls/split-tunneling.svg"
+                leftImageColor: AmneziaStyle.color.goldenApricot
+                rightImageSource: "qrc:/images/controls/chevron-right.svg"
+
+                Keys.onEnterPressed: this.clicked()
+                Keys.onReturnPressed: this.clicked()
+
+                onClicked: {
+                    PageController.showNotificationMessage(qsTr("The split-tunnel driver failed to start. The VPN works, but app exclusions and the Direct proxy are not bypassing it. Disconnect and connect again to retry."))
+                }
+            }
+
+            BasicButtonType {
                 id: directProxyStatusButton
                 objectName: "directProxyStatusButton"
 
@@ -270,6 +309,7 @@ PageType {
                 buttonTextLabel.font.weight: 500
 
                 text: qsTr("Direct proxy enabled") + "  (" + DirectProxyController.address + ")"
+                      + (ConnectionController.splitTunnelUnavailable ? "  · " + qsTr("not bypassing VPN!") : "")
 
                 leftImageSource: "qrc:/images/controls/globe-2.svg"
                 leftImageColor: ""

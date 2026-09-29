@@ -68,7 +68,22 @@ bool Daemon::activate(const InterfaceConfig& config) {
   // If the activation abort's for any reason `the `activationFailure` signal is
   // emitted.
   logger.debug() << "Activating interface";
-  auto emit_failure_guard = qScopeGuard([this] { emit activationFailure(); });
+  // A fresh activation configures the interface, peer, DNS and routes step by step and
+  // only then runs the platform hook (split tunnel on Windows). If any later step fails
+  // the earlier ones used to stay in place: the tunnel kept carrying traffic while the
+  // client was told "disconnected" (no kill switch, no watchdog). Roll everything back so
+  // the daemon state always matches what the client shows.
+  bool freshActivation = false;
+  auto emit_failure_guard = qScopeGuard([this, &config, &freshActivation] {
+    if (freshActivation) {
+      logger.warning() << "Activation failed, rolling the interface back";
+      run(Down, config);
+      if (!deactivate(false)) {
+        logger.error() << "Rollback after failed activation did not complete";
+      }
+    }
+    emit activationFailure();
+  });
 
   if (m_connections.contains(config.m_hopType)) {
     if (supportServerSwitching(config)) {
@@ -111,6 +126,7 @@ bool Daemon::activate(const InterfaceConfig& config) {
   }
 
   prepareActivation(config);
+  freshActivation = true;
 
   // Bring up the wireguard interface if not already done.
   if (!wgutils()->interfaceExists()) {

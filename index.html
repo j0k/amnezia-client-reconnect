@@ -51,23 +51,23 @@
 </header>
 
 <h1>AmneziaVPN Reconnect+Proxy</h1>
-<p class="sub">A personal fork of the official <a href="https://github.com/amnezia-vpn/amnezia-client">AmneziaVPN client</a> (upstream 5.0.1.1) with extra <strong>Windows desktop</strong> features. Client-side only — the VPN service and drivers are stock.</p>
+<p class="sub">A personal fork of the official <a href="https://github.com/amnezia-vpn/amnezia-client">AmneziaVPN client</a> (fork version 5.1.1_2, upstream base 5.0.1.1) with extra <strong>Windows desktop</strong> features. Client-side plus two small fixes in the Windows service (split-tunnel driver re-registration, non-fatal split-tunnel failure); the drivers are stock.</p>
 <div class="badges">
-  <span class="badge">v5.0.1.1-reconnect-proxy</span><span class="badge">Windows x64</span><span class="badge">signed .exe / .msi</span><span class="badge">GPL-3.0</span>
+  <span class="badge">v5.1.1_2</span><span class="badge">Windows x64</span><span class="badge">signed .exe / .msi</span><span class="badge">GPL-3.0</span>
 </div>
 
 <div class="dl">
-  <a class="btn" href="https://github.com/j0k/amnezia-client-reconnect/releases/download/v5.0.1.1-reconnect-proxy/AmneziaVPN_Reconnect_5.0.1.1_windows_x64.exe">⬇ Download .exe (102 MB)</a>
-  <a class="btn alt" href="https://github.com/j0k/amnezia-client-reconnect/releases/download/v5.0.1.1-reconnect-proxy/AmneziaVPN_Reconnect_5.0.1.1_windows_x64.msi">⬇ Download .msi (83 MB)</a>
-  <a class="btn ghost" href="https://github.com/j0k/amnezia-client-reconnect/releases/tag/v5.0.1.1-reconnect-proxy">All releases · SHA256SUMS</a>
+  <a class="btn" href="https://github.com/j0k/amnezia-client-reconnect/releases/download/v5.1.1_2/AmneziaVPN_Reconnect_5.1.1_2_windows_x64.exe">⬇ Download .exe (102 MB)</a>
+  <a class="btn alt" href="https://github.com/j0k/amnezia-client-reconnect/releases/download/v5.1.1_2/AmneziaVPN_Reconnect_5.1.1_2_windows_x64.msi">⬇ Download .msi (83 MB)</a>
+  <a class="btn ghost" href="https://github.com/j0k/amnezia-client-reconnect/releases/tag/v5.1.1_2">All releases · SHA256SUMS</a>
 </div>
 <p class="hint">Installs into <code>C:\Program Files\AmneziaVPN_Reconnect</code> as <strong>AmneziaVPN</strong> (same exe and service name as upstream, so the two cannot run side by side) — the installer removes an official client found in <code>C:\Program Files\AmneziaVPN</code> first. Source: <a href="https://github.com/j0k/amnezia-client-reconnect">github.com/j0k/amnezia-client-reconnect</a></p>
 
 <h2>🔐 Checksums of the release files</h2>
 <table>
   <tr><th>File</th><th>Size</th><th>CRC32</th><th>SHA-256</th></tr>
-  <tr><td><code>AmneziaVPN_Reconnect_5.0.1.1_windows_x64.exe</code></td><td>107 401 832 B</td><td><code>2983C6C5</code></td><td><code style="word-break:break-all">693809395d09e9f623a10cac8ecdbf1c472ad33c0576dde76e632440e4585606</code></td></tr>
-  <tr><td><code>AmneziaVPN_Reconnect_5.0.1.1_windows_x64.msi</code></td><td>86 990 848 B</td><td><code>015ECFE0</code></td><td><code style="word-break:break-all">a07914661e4d99ba9c2a21d1fdfd062ea94193a65bf47f9f92b2c50eaf1168b3</code></td></tr>
+  <tr><td><code>AmneziaVPN_Reconnect_5.1.1_2_windows_x64.exe</code></td><td>107 401 832 B</td><td><code>2983C6C5</code></td><td><code style="word-break:break-all">693809395d09e9f623a10cac8ecdbf1c472ad33c0576dde76e632440e4585606</code></td></tr>
+  <tr><td><code>AmneziaVPN_Reconnect_5.1.1_2_windows_x64.msi</code></td><td>86 990 848 B</td><td><code>015ECFE0</code></td><td><code style="word-break:break-all">a07914661e4d99ba9c2a21d1fdfd062ea94193a65bf47f9f92b2c50eaf1168b3</code></td></tr>
 </table>
 <p class="hint">Check on Windows: <code>certutil -hashfile &lt;file&gt; SHA256</code>; CRC32 e.g. with 7-Zip → <em>CRC SHA</em>, or <code>python -c "import zlib,sys;print('%08X'%(zlib.crc32(open(sys.argv[1],'rb').read())&amp;0xFFFFFFFF))" &lt;file&gt;</code>. The same SHA-256 values are in <code>SHA256SUMS.txt</code> on the release.</p>
 
@@ -86,7 +86,7 @@
 <p>📄 Documentation: <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/DIFFERENCE.md">DIFFERENCE</a>, <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/WORKFLOW.md">WORKFLOW</a>, README_certs <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/README_certs.md">EN</a> / <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/README_certs_RU.md">RU</a>.</p>
 <p><strong>➕ Added after that (8 Sep 2026):</strong></p>
 <ul>
-  <li>🚀 First GitHub release <code>v5.0.1.1-reconnect-proxy</code>; installers renamed <code>AmneziaVPN_Reconnect_*</code>, both signed.</li>
+  <li>🚀 First GitHub release <code>v5.1.1_2</code>; installers renamed <code>AmneziaVPN_Reconnect_*</code>, both signed.</li>
   <li>📚 Guides with clickable code links: <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/docs/reconnect/SETUP.md">docs/reconnect/SETUP</a> (which hosts to ping and why) and <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/docs/proxy/ARCHITECTURE.md">docs/proxy/ARCHITECTURE</a> (how the proxies work, with diagrams); <code>DIFFERENCE.md</code> and <code>HISTORY.md</code> split into EN + RU.</li>
   <li>🧠 These landing pages with the interactive mind map (and <code>.mymind</code> files for My Mind).</li>
   <li>🌐 Direct proxy page: a row per browser — <strong>Chrome, Edge, Firefox, Yandex Browser</strong> — with <em>Launch</em>, <em>Copy</em> and the exact PowerShell command line (selectable text); Firefox gets an auto-generated profile.</li>
@@ -131,6 +131,16 @@
   <li>Switch on <strong>Log requested hosts</strong> to see who asked for what: <code>[time] NEW  192.168.1.23 -&gt; chat.qwen.ai:443</code>.</li>
 </ol>
 <p class="hint">The Windows firewall must allow inbound TCP 8900 for <code>amnezia-direct-proxy-vpn.exe</code> (Windows asks on first start). Details and code: <a href="https://github.com/j0k/amnezia-client-reconnect/blob/dev/docs/proxy/ARCHITECTURE.md">docs/proxy/ARCHITECTURE.md</a>.</p>
+
+<h2>🩺 Troubleshooting: "Connected" in reality, "Disconnected" in the client (after installing over the official client)</h2>
+<p><strong>Symptom.</strong> You press Connect, the button falls back to <em>Connect</em>, but sites show the VPN server's IP; the client log ends with <code>Parse command: backendFailure … {"errorCode":2}</code>, then <code>disconnected</code>; the Windows <em>System</em> event log has event 7000: <em>The AmneziaVPNSplitTunnel service failed to start … The system cannot find the file specified</em>.</p>
+<p><strong>Cause.</strong> The split-tunnel kernel driver (<code>mullvad-split-tunnel.sys</code>) is registered as a Windows service named <code>AmneziaVPNSplitTunnel</code> by the VPN daemon, with the <em>full path</em> of the .sys inside the app folder. The official client keeps it in <code>C:\Program Files\AmneziaVPN\</code>; this fork installs into <code>C:\Program Files\AmneziaVPN_Reconnect\</code>. Upgrading deleted the old folder but left the service registration pointing at the old path → the driver could not start → the daemon reported <em>split tunnel init failure</em> → the client showed Disconnected, while the WireGuard interface it had already brought up kept carrying traffic. Builds from 29 Sep 2026 on detect a stale registration and re-register the driver themselves, and the installers remove it; on an older build do it by hand:</p>
+<pre>sc.exe stop   AmneziaVPNSplitTunnel        # stop the driver if it is loaded (no-op when stopped)
+sc.exe delete AmneziaVPNSplitTunnel        # delete the service registration = registry key
+                                           # HKLM\SYSTEM\CurrentControlSet\Services\AmneziaVPNSplitTunnel
+Restart-Service AmneziaVPN-service -Force  # restart the daemon: it re-registers the driver from its own folder</pre>
+<p class="hint">Run in PowerShell <strong>as administrator</strong> (Win+X → Terminal (Admin), or <code>Start-Process powershell -Verb RunAs</code>). Then press Connect. Check: <code>sc.exe qc AmneziaVPNSplitTunnel</code> must show <code>BINARY_PATH_NAME : \??\C:\Program Files\AmneziaVPN_Reconnect\mullvad-split-tunnel.sys</code> and <code>sc.exe query AmneziaVPNSplitTunnel</code> → <code>STATE : 4 RUNNING</code>.</p>
+<p><strong>What SCM is.</strong> The <em>Service Control Manager</em> is the part of Windows that keeps the list of services and drivers and starts/stops them. Every service — including a kernel-mode driver, which is just a service of type <code>KERNEL_DRIVER</code> — is a key under <code>HKLM\SYSTEM\CurrentControlSet\Services\&lt;name&gt;</code> with <code>ImagePath</code> (the executable or .sys), <code>Start</code> (auto/manual/disabled) and <code>Type</code>. <code>sc.exe</code> is the command-line client of SCM: <code>sc qc</code> shows a registration, <code>sc query</code> its state, <code>sc create / delete / start / stop</code> change it; the same is available in <code>services.msc</code> and via PowerShell (<code>Get-Service</code>, <code>Restart-Service</code>). The <code>\??\</code> prefix in the path is the NT object-manager notation for a Win32 path, used for driver images.</p>
 
 <h2>🧠 Interactive mind map</h2>
 <p class="hint" style="margin-bottom:12px">Click a branch to expand it, hover for details, ↗ opens the document. The same map for <a href="https://juri-konoplev.pro/my-mind/">My Mind</a>: <a href="docs/vpn-amnezia-reconnect_en.mymind">EN</a> / <a href="docs/vpn-amnezia-reconnect_ru.mymind">RU</a>.</p>

@@ -491,6 +491,7 @@ void LocalSocketController::parseCommand(const QByteArray& command) {
       case DaemonError::ERROR_SPLIT_TUNNEL_EXCLUDE_FAILURE:
         logger.error() << "split tunnel backend failure error";
         //REPORTERROR(ErrorHandler::SplitTunnelError, "controller");
+        emit splitTunnelUnavailable(errorCode);
         break;
       case DaemonError::DAEMON_ERROR_MAX:
         // We should not get here.

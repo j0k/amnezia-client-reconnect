@@ -18,6 +18,9 @@ public:
     Q_PROPERTY(bool isConnected READ isConnected NOTIFY connectionStateChanged)
     Q_PROPERTY(bool isConnectionInProgress READ isConnectionInProgress NOTIFY connectionStateChanged)
     Q_PROPERTY(QString connectionStateText READ connectionStateText NOTIFY connectionStateChanged)
+    // True while connected but the split-tunnel driver failed to start: app exclusions and
+    // the Direct proxy are not bypassing the VPN. Cleared on the next connect/disconnect.
+    Q_PROPERTY(bool splitTunnelUnavailable READ isSplitTunnelUnavailable NOTIFY splitTunnelUnavailableChanged)
 
     explicit ConnectionUiController(ConnectionController* connectionController,
                                     ServersController* serversController,
@@ -27,6 +30,7 @@ public:
 
     bool isConnected() const;
     bool isConnectionInProgress() const;
+    bool isSplitTunnelUnavailable() const { return m_splitTunnelUnavailable; }
     QString connectionStateText() const;
 
 public slots:
@@ -39,11 +43,13 @@ public slots:
 
     ErrorCode getLastConnectionError();
     void onConnectionStateChanged(Vpn::ConnectionState state);
+    void onSplitTunnelUnavailable(int errorCode);
 
     void onTranslationsUpdated();
 
 signals:
     void connectionStateChanged();
+    void splitTunnelUnavailableChanged();
 
     void connectionErrorOccurred(ErrorCode errorCode);
 
@@ -61,6 +67,8 @@ private:
     ServersController* m_serversController;
 
     bool m_isConnected = false;
+
+    bool m_splitTunnelUnavailable = false;
     bool m_isConnectionInProgress = false;
     QString m_connectionStateText = tr("Connect");
 

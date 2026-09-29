@@ -11,6 +11,13 @@
 
 ## История версий (Changelog)
 
+### 5.1.1_2 (2026-09-29)
+- **Схема версий** `<линия>_<релиз форка>`: `AMNEZIAVPN_VERSION 5.1.1.2` → установщики `AmneziaVPN_Reconnect_5.1.1_2_windows_x64.*`, тег `v5.1.1_2`; база апстрима по-прежнему 5.0.1.1.
+- **Установка поверх официального клиента**: служба драйвера `AmneziaVPNSplitTunnel` сохраняла старый путь `C:\Program Files\AmneziaVPN\mullvad-split-tunnel.sys` → драйвер не стартовал (событие System 7000), каждое подключение заканчивалось `backendFailure 2`, клиент показывал *Disconnected* при поднятом WireGuard-туннеле. Теперь `WindowsSplitTunnel::create()` перерегистрирует драйвер, если путь устарел; `post_install.cmd`, `post_uninstall.cmd` и WiX `ServiceControl` удаляют старую регистрацию.
+- **Сбой split-tunnel больше не роняет туннель** (`WindowsDaemon::run`): соединение остаётся, демон шлёт `backendFailure`, клиент остаётся в *Connected* и показывает **Split tunneling unavailable — reconnect to retry** (главный экран, янтарным; строка Direct-прокси дописывает *not bypassing VPN!*). `Daemon::activate()` откатывает полунастроенный интерфейс, если падает любой *другой* шаг.
+- Process Recorder: *Open whole list in editor*, *Copy list*, *Export .csv*.
+- Подпись кода: новый самоподписанный сертификат `CN=Juri J. Konoplev (juri-konoplev.pro, github.com/j0k) live like a dance`, `docs/code-signing-cheatsheet.pdf`, публичный `docs/Juri_J_Konoplev_codesign.cer`.
+
 ### Process Recorder, два прокси, HTTPS (2026-09-08; база — upstream 5.0.1.1)
 - **Process Recorder** (Settings → Connection → Process recorder): снимки всех процессов каждые N сек (настраиваемо, напр. `3.33`), метки **NEW** / **EXITED с длительностью работы**, раскрытие по клику (PID/PPID/потоки/время старта/полный путь + Copy path), ползунок времени (LIVE / перемотка), фильтр, «только новые».
 - **Два локальных прокси** вместо одного: **Direct** (мимо VPN, реальный IP) и **VPN** (через туннель — другой комп выходит через твой VPN). У каждого: адрес привязки (`127.0.0.1` / `0.0.0.0` / IP), порт, **опциональный логин/пароль** (HTTP 407 Basic + SOCKS5 RFC1929), **allowlist клиентских IP**, лог. VPN-прокси запускается из отдельной копии helper'а в `%APPDATA%` (иначе split-tunnel исключил бы оба).

@@ -1,11 +1,14 @@
 set(CPACK_PACKAGE_VENDOR            AmneziaVPN)
 set(CPACK_PACKAGE_VERSION           ${AMNEZIAVPN_VERSION})
+# Fork versioning: AMNEZIAVPN_VERSION = <base>.<fork release>, e.g. 5.1.1.2 = fork release 2 of
+# the 5.1.1 line (upstream base 5.0.1.1). File names use "<base>_<fork release>".
+string(REGEX REPLACE "^([0-9]+\\.[0-9]+\\.[0-9]+)\\.([0-9]+)$" "\\1_\\2" AMNEZIA_FORK_VERSION_LABEL "${AMNEZIAVPN_VERSION}")
 if(WIN32)
-    set(CPACK_PACKAGE_FILE_NAME "AmneziaVPN_Reconnect_${AMNEZIAVPN_VERSION}_windows_x64")
+    set(CPACK_PACKAGE_FILE_NAME "AmneziaVPN_Reconnect_${AMNEZIA_FORK_VERSION_LABEL}_windows_x64")
 elseif(APPLE AND NOT IOS AND NOT MACOS_NE)
-    set(CPACK_PACKAGE_FILE_NAME "AmneziaVPN_Reconnect_${AMNEZIAVPN_VERSION}_macos_x64")
+    set(CPACK_PACKAGE_FILE_NAME "AmneziaVPN_Reconnect_${AMNEZIA_FORK_VERSION_LABEL}_macos_x64")
 elseif(LINUX AND NOT ANDROID)
-    set(CPACK_PACKAGE_FILE_NAME "AmneziaVPN_Reconnect_${AMNEZIAVPN_VERSION}_linux_x64")
+    set(CPACK_PACKAGE_FILE_NAME "AmneziaVPN_Reconnect_${AMNEZIA_FORK_VERSION_LABEL}_linux_x64")
 endif()
 # Fork: own install folder (C:\Program Files\AmneziaVPN_Reconnect) and product title, so it
 # is distinguishable from the official client. The exe/service names stay AmneziaVPN.

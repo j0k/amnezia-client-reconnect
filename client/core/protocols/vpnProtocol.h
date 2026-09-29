@@ -78,6 +78,8 @@ signals:
     void timeoutTimerEvent();
     void protocolError(amnezia::ErrorCode e);
     void tunnelAddressesUpdated(const QString& gateway, const QString& localAddress);
+    // Tunnel is up but the split-tunnel driver failed (Windows); errorCode = DaemonError.
+    void splitTunnelUnavailable(int errorCode);
 
 public slots:
     virtual void onTimeout(); // todo: remove?

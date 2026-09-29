@@ -91,6 +91,11 @@ void WindowsDaemon::activateSplitTunnel(const InterfaceConfig& config, int vpnAd
 }
 
 bool WindowsDaemon::run(Op op, const InterfaceConfig& config) {
+  // Fork: a split-tunnel failure no longer tears the tunnel down. The tunnel itself is
+  // fine at this point; the client is told via backendFailure and shows
+  // "split tunneling unavailable" while staying connected (no app exclusions until the
+  // next connect). Returning false here used to leave a half-configured interface up
+  // while the client showed "disconnected".
   if (!m_splitTunnelManager) {
     if (config.m_vpnDisabledApps.length() > 0) {
       // The Client has sent us a list of disabled apps, but we failed
@@ -98,7 +103,6 @@ bool WindowsDaemon::run(Op op, const InterfaceConfig& config) {
       // So let the client know this was not possible
       logger.error() << "Split tunnel manager is not initialized";
       emit backendFailure(DaemonError::ERROR_SPLIT_TUNNEL_INIT_FAILURE);
-      return false;
     }
     return true;
   }
@@ -111,18 +115,20 @@ bool WindowsDaemon::run(Op op, const InterfaceConfig& config) {
     if (!m_splitTunnelManager->start(m_inetAdapterIndex)) {
       logger.error() << "Split tunnel start failed";
       emit backendFailure(DaemonError::ERROR_SPLIT_TUNNEL_START_FAILURE);
-      return false;
+      m_splitTunnelManager->stop();
+      return true;
     };
     if (!m_splitTunnelManager->excludeApps(config.m_vpnDisabledApps)) {
       logger.error() << "Split tunnel app exclusion failed";
       emit backendFailure(DaemonError::ERROR_SPLIT_TUNNEL_EXCLUDE_FAILURE);
-      return false;
+      m_splitTunnelManager->stop();
+      return true;
     };
     // Now the driver should be running (State == 4)
     if (!m_splitTunnelManager->isRunning()) {
       logger.error() << "Split tunnel did not reach running state";
       emit backendFailure(DaemonError::ERROR_SPLIT_TUNNEL_START_FAILURE);
-      return false;
+      m_splitTunnelManager->stop();
     }
     return true;
   }
