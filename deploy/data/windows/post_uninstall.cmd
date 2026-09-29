@@ -12,6 +12,8 @@ set "SYS_LOG_FILE=%SYS_LOG_DIR%\AmneziaVPN-service.log"
 timeout /t 1
 sc stop AmneziaVPN-service
 sc delete AmneziaVPN-service
+sc stop AmneziaVPNSplitTunnel
+sc delete AmneziaVPNSplitTunnel
 sc stop AmneziaWGTunnel$AmneziaVPN
 sc delete AmneziaWGTunnel$AmneziaVPN
 taskkill /IM "AmneziaVPN-service.exe" /F

@@ -21,6 +21,7 @@
 #include <psapi.h>
 
 #include <QCoreApplication>
+#include <QDir>
 #include <QFileInfo>
 #include <QNetworkInterface>
 #include <QScopeGuard>
@@ -179,6 +180,17 @@ std::unique_ptr<WindowsSplitTunnel> WindowsSplitTunnel::create(
     return nullptr;
   }
   // 01: Check if the driver is installed, if not do so.
+  // A registration left by a previous install in another folder (e.g. the official
+  // client in C:\Program Files\AmneziaVPN, this fork in AmneziaVPN_Reconnect) points at a
+  // .sys that no longer exists: StartService then fails with "file not found" and the
+  // split tunnel never initialises. Detect that and re-register from the current folder.
+  if (isInstalled() && !isDriverServicePathCurrent()) {
+    logger.warning() << "Split tunnel driver service points at a stale path, re-registering";
+    if (!uninstallDriver()) {
+      logger.error() << "Failed to remove the stale split tunnel driver service";
+      return nullptr;
+    }
+  }
   if (!isInstalled()) {
     logger.debug() << "Driver is not Installed, doing so";
     auto handle = installDriver();
@@ -645,13 +657,65 @@ bool WindowsSplitTunnel::uninstallDriver() {
                                       NULL,  // servicesActive database
                                       scm_rights);
 
-  auto servicehandle =
-      OpenService(serviceManager, DRIVER_SERVICE_NAME, GENERIC_READ);
+  auto servicehandle = OpenService(serviceManager, DRIVER_SERVICE_NAME,
+                                   SERVICE_STOP | SERVICE_QUERY_STATUS | DELETE);
+  if (servicehandle == nullptr) {
+    CloseServiceHandle(serviceManager);
+    return GetLastError() == ERROR_SERVICE_DOES_NOT_EXIST;
+  }
+  SERVICE_STATUS status{};
+  ControlService(servicehandle, SERVICE_CONTROL_STOP, &status);  // best effort
   auto result = DeleteService(servicehandle);
   if (result) {
     logger.debug() << "Split Tunnel Driver Removed";
+  } else {
+    logger.error() << "DeleteService failed:" << GetLastError();
   }
+  CloseServiceHandle(servicehandle);
+  CloseServiceHandle(serviceManager);
   return result;
+}
+
+// static
+bool WindowsSplitTunnel::isDriverServicePathCurrent() {
+  auto serviceManager = OpenSCManager(nullptr, nullptr, SC_MANAGER_CONNECT);
+  if (serviceManager == nullptr) {
+    return true;  // cannot tell; keep the old behaviour
+  }
+  auto servicehandle =
+      OpenService(serviceManager, DRIVER_SERVICE_NAME, SERVICE_QUERY_CONFIG);
+  if (servicehandle == nullptr) {
+    CloseServiceHandle(serviceManager);
+    return true;
+  }
+  DWORD needed = 0;
+  QueryServiceConfigW(servicehandle, nullptr, 0, &needed);
+  QByteArray buffer(needed, 0);
+  auto* config = reinterpret_cast<LPQUERY_SERVICE_CONFIGW>(buffer.data());
+  bool current = true;
+  if (needed > 0 && QueryServiceConfigW(servicehandle, config, needed, &needed)) {
+    QString registered = QString::fromWCharArray(config->lpBinaryPathName);
+    const QString prefix = QStringLiteral("\\??\\");
+    if (registered.startsWith(prefix)) {
+      registered = registered.mid(prefix.size());
+    }
+    registered = registered.trimmed();
+    if (registered.startsWith('"') && registered.endsWith('"')) {
+      registered = registered.mid(1, registered.size() - 2);
+    }
+    const QString expected = QDir::toNativeSeparators(
+        qApp->applicationDirPath() + "/" + DRIVER_FILENAME);
+    current = (QString::compare(QDir::toNativeSeparators(registered), expected,
+                                Qt::CaseInsensitive) == 0)
+              && QFileInfo::exists(registered);
+    if (!current) {
+      logger.warning() << "Registered driver path:" << registered
+                       << "expected:" << expected;
+    }
+  }
+  CloseServiceHandle(servicehandle);
+  CloseServiceHandle(serviceManager);
+  return current;
 }
 // static
 bool WindowsSplitTunnel::isInstalled() {

@@ -74,6 +74,9 @@ class WindowsSplitTunnel final {
   static SC_HANDLE installDriver();
   static bool uninstallDriver();
   static bool isInstalled();
+  // True when the registered kernel service points at <app dir>/mullvad-split-tunnel.sys
+  // and that file exists; false for a registration left behind by another install folder.
+  static bool isDriverServicePathCurrent();
   static bool initDriver(HANDLE driverIO);
   static DRIVER_STATE getState(HANDLE driverIO);
   static bool resetDriver(HANDLE driverIO);

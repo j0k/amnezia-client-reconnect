@@ -20,5 +20,14 @@
                 Stop="both"
                 Remove="uninstall"
                 Wait="yes" />
+        <!-- The daemon registers the split-tunnel kernel driver from its own folder. A
+             registration left by another install folder (official client) points at a
+             deleted .sys and breaks split tunneling, so drop it on install and uninstall. -->
+        <ServiceControl
+                Id="AmneziaSplitTunnelDriverControl"
+                Name="AmneziaVPNSplitTunnel"
+                Stop="both"
+                Remove="both"
+                Wait="no" />
     </CPackWiXFragment>
 </CPackWiXPatch>
